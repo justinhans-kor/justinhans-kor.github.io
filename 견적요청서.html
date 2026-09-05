@@ -1,0 +1,1243 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#eff0f2">
+<title>변압기 현장시험 견적 요청</title>
+</head>
+<body>
+<script>
+/* ── 화면 색조 ──────────────────────────────────────────────
+   기본은 보는 사람의 기기 설정을 따르고, 오른쪽 위 단추로 바꿀 수 있습니다.
+   고른 값은 홈페이지와 «같은 열쇠(mrt-theme)» 에 적어 두므로,
+   홈페이지에서 고른 밝기가 이 화면까지 그대로 따라옵니다.
+   스타일보다 먼저 실행되어 깜빡임이 없습니다. */
+(function () {
+  var d = 'light';
+  try {
+    var s = localStorage.getItem('mrt-theme');
+    d = (s === 'light' || s === 'dark') ? s
+      : (window.matchMedia && matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+  } catch (e) {}
+  document.documentElement.setAttribute('data-theme', d);
+  /* 폰 브라우저 주소창 색 */
+  var mt = document.querySelector('meta[name="theme-color"]');
+  if (!mt) {
+    mt = document.createElement('meta');
+    mt.name = 'theme-color';
+    (document.head || document.documentElement).appendChild(mt);
+  }
+  mt.content = (d === 'dark') ? '#14161a' : '#eff0f2';
+})();
+</script>
+<style>
+/* ── 색: 흑연 바탕 + 구리 권선 강조 ─────────────────────────── */
+:root{
+  --bg:#eff0f2; --panel:#fff; --field:#f7f8f9; --sunk:#e8eaed;
+  --ink:#1a1d21; --ink-2:#42474e; --muted:#6a7078; --line:#dcdee2; --rule:#c4c8ce;
+  --cu:#9e4a16; --cu-ink:#9e4a16; --cu-soft:#f7ece4; --cu-line:#e0c4ae;
+  --ok:#14713f; --bad:#a3271f;
+  --go-fg:#fff;         /* 주 단추 글자 */
+  --ph:#949aa2;         /* 입력 전 안내 글자 */
+  --shadow:0 1px 1px rgba(20,24,30,.04), 0 3px 10px rgba(20,24,30,.05);
+  --mono:"Cascadia Mono",Consolas,"D2Coding","Courier New",monospace;
+  --sans:"Pretendard","Malgun Gothic","맑은 고딕",-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;   /* 날짜 선택창·드롭다운·스크롤바 같은 브라우저 기본 위젯까지 밝게 */
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --panel:#1c1f24; --field:#16181c; --sunk:#101216;
+    --ink:#e9eaec; --ink-2:#c3c7cd; --muted:#969ca5; --line:#2c3037; --rule:#3a3f48;
+    --cu:#e08a4c; --cu-ink:#eb9a5f; --cu-soft:#2a2018; --cu-line:#4a3a2b;
+    --ok:#4cc38a; --bad:#e5645a;
+    --go-fg:#1b1206;
+    --ph:#6b737d;
+    --shadow:none;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --panel:#1c1f24; --field:#16181c; --sunk:#101216;
+  --ink:#e9eaec; --ink-2:#c3c7cd; --muted:#969ca5; --line:#2c3037; --rule:#3a3f48;
+  --cu:#e08a4c; --cu-ink:#eb9a5f; --cu-soft:#2a2018; --cu-line:#4a3a2b;
+  --ok:#4cc38a; --bad:#e5645a;
+  --go-fg:#1b1206;
+  --ph:#6b737d;
+  --shadow:none;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.6;
+  -webkit-text-size-adjust:100%;
+  word-break:keep-all;      /* 한글은 낱말 단위로 줄바꿈 */
+  overflow-wrap:break-word; /* 단, 긴 영문·암호문은 넘치지 않게 */
+}
+.wrap{max-width:880px; margin:0 auto; padding:26px 16px 64px; display:flex; flex-direction:column; gap:14px}
+
+/* ── 명판(rating plate) 머리글 ────────────────────────────── */
+.plate{
+  background:var(--panel); border:1px solid var(--rule); border-radius:3px;
+  box-shadow:var(--shadow); padding:0; overflow:hidden;
+}
+.plate .top{padding:22px 62px 18px 24px; border-bottom:1px solid var(--rule); position:relative}
+/* ── 밝기 단추 ────────────────────────────────────────────── */
+.tgl{
+  all:unset; box-sizing:border-box; position:absolute; top:18px; right:18px;
+  display:flex; align-items:center; justify-content:center;
+  width:32px; height:32px; cursor:pointer;
+  border:1px solid var(--line); border-radius:2px; color:var(--muted);
+}
+.tgl:hover{border-color:var(--cu); color:var(--cu-ink)}
+.tgl:focus-visible{outline:2px solid var(--cu); outline-offset:2px}
+.tgl svg{width:16px; height:16px; display:block}
+.tgl .sun{display:none}
+:root[data-theme="dark"] .tgl .sun{display:block}
+:root[data-theme="dark"] .tgl .moon{display:none}
+@media (max-width:640px){ .tgl{top:13px; right:13px; width:30px; height:30px} }
+
+.eyebrow{
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--cu-ink); margin:0 0 9px;
+}
+.plate h1{
+  margin:0; font-size:25px; line-height:1.25; letter-spacing:-.022em; font-weight:700;
+  text-wrap:balance; word-break:keep-all;   /* 한글 낱말 중간에서 안 끊기게 */
+}
+.plate .lede{margin:9px 0 0; color:var(--muted); font-size:13.5px; max-width:60ch}
+.plate .lede b{color:var(--ink-2)}
+.stamp{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(154px,1fr));
+  background:var(--sunk); border-collapse:collapse;
+}
+.stamp div{padding:11px 24px; border-right:1px solid var(--line); border-top:1px solid var(--line)}
+.stamp dt{
+  font-family:var(--mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--muted); margin:0 0 3px;
+}
+.stamp dd{margin:0; font-size:13px; font-weight:600; color:var(--ink-2)}
+
+/* ── 규격표 절(section) ───────────────────────────────────── */
+.sec{
+  background:var(--panel); border:1px solid var(--line); border-radius:3px;
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.sec>h2, .sec>summary{
+  margin:0; padding:12px 20px; border-bottom:1px solid var(--rule);
+  font-size:13.5px; font-weight:700; letter-spacing:-.01em;
+  display:flex; align-items:baseline; gap:11px; background:var(--sunk);
+}
+.sec>h2 .n, .sec>summary .n{
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--cu-ink);
+  font-weight:700;
+}
+.sec>h2 .note, .sec>summary .note{
+  margin-left:auto; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--muted); font-weight:400;
+}
+.pad{padding:18px 20px}
+
+/* 접히는 절 — 모바일에서 화면이 짧아진다 */
+details.sec>summary{cursor:pointer; list-style:none; padding-right:44px; position:relative}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary:hover{background:var(--cu-soft)}
+details.sec>summary::after{
+  content:'+'; position:absolute; right:17px; top:50%; transform:translateY(-50%);
+  font-family:var(--mono); font-size:17px; font-weight:400; color:var(--cu-ink); line-height:1;
+}
+details.sec[open]>summary::after{content:'−'}
+details.sec:not([open])>summary{border-bottom:0}
+/* 다 채운 절에 표시 */
+.sec>summary .ok{
+  margin-left:auto; font-family:var(--mono); font-size:10px; letter-spacing:.08em;
+  color:var(--ok); font-weight:700;
+}
+.sec>summary .ok+.note{margin-left:9px}
+
+/* 변압기 부수 항목 접기 */
+.more-tr{
+  width:100%; margin:0; border:0; border-top:1px solid var(--line); background:transparent;
+  color:var(--cu-ink); font-family:var(--mono); font-size:10.5px; letter-spacing:.1em;
+  text-transform:uppercase; padding:10px; cursor:pointer; text-align:center;
+}
+.more-tr:hover{background:var(--cu-soft)}
+.tr .grid.extra{display:none}
+.tr.open .grid.extra{display:grid; border-top:1px solid var(--line)}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(196px,1fr)); gap:15px}
+.f{display:flex; flex-direction:column; gap:6px; min-width:0}
+.f.wide{grid-column:1/-1}
+label{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted);
+}
+label .req{color:var(--bad); margin-left:3px}
+label .opt{
+  margin-left:5px; padding:1px 6px; border-radius:2px; background:var(--sunk);
+  border:1px solid var(--line); color:var(--muted); font-size:9px;
+}
+input,select,textarea{
+  font:inherit; font-size:14.5px; padding:9px 11px; width:100%;
+  border:1px solid var(--line); border-radius:2px;
+  background:var(--field); color:var(--ink);
+}
+/* 입력 전 안내 글자. 규칙이 없으면 브라우저 기본값(크롬 #757575)이 쓰이는데,
+   기기마다 진하기가 달라 휴대폰에서 실제 입력값처럼 보인다. 색을 못박는다.
+   opacity:1 은 파이어폭스가 제 투명도를 덧씌우는 것을 막는다. */
+input::placeholder, textarea::placeholder{ color:var(--ph); opacity:1; }
+textarea{resize:vertical; min-height:78px; line-height:1.6}
+input:focus-visible,select:focus-visible,textarea:focus-visible,
+button:focus-visible,.item:focus-within{
+  outline:2px solid var(--cu); outline-offset:1px; border-color:var(--cu);
+}
+input.bad{border-color:var(--bad); background:color-mix(in srgb,var(--bad) 8%,var(--field))}
+.hint{font-size:12px; color:var(--muted); line-height:1.55}
+.hint.bad{color:var(--bad)}
+label .per{
+  margin-left:5px; padding:1px 6px; border-radius:2px; background:var(--cu-soft);
+  border:1px solid var(--cu-line); color:var(--cu-ink); font-size:9px;
+}
+
+/* 예산 토글 — 필수 칸. 비어서 시작해 첫 [+] 에 300만원, 이후 50만원씩 */
+.stepper{display:flex; align-items:stretch; border:1px solid var(--line); border-radius:2px; overflow:hidden; max-width:340px}
+.stepper.bad{border-color:var(--bad); background:color-mix(in srgb,var(--bad) 8%,var(--field))}
+.stepper button{
+  flex:0 0 46px; border:0; background:var(--sunk); color:var(--cu-ink); cursor:pointer;
+  font-size:19px; font-weight:600; line-height:1;
+}
+.stepper button:hover{background:var(--cu-soft)}
+.stepper button:disabled{opacity:.35; cursor:not-allowed; background:var(--sunk)}
+.stepper output{
+  flex:1; display:grid; place-items:center; padding:10px 8px; background:var(--field);
+  border-left:1px solid var(--line); border-right:1px solid var(--line);
+  font-family:var(--mono); font-variant-numeric:tabular-nums;
+  font-size:15px; font-weight:700; letter-spacing:-.01em; color:var(--ink);
+}
+.stepper output.none{font-weight:500; color:var(--muted); font-family:var(--sans)}
+
+/* ── 변압기 사양 카드 ─────────────────────────────────────── */
+.tr{border:1px solid var(--line); border-radius:2px; background:var(--field); margin-bottom:12px}
+.tr .hd{
+  display:flex; align-items:center; gap:10px; padding:9px 15px;
+  border-bottom:1px solid var(--line); background:var(--sunk);
+}
+.tr .hd .nm{
+  font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--cu-ink); font-weight:700;
+}
+.tr .hd button{
+  margin-left:auto; border:1px solid var(--line); background:var(--panel); color:var(--muted);
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  padding:4px 10px; border-radius:2px; cursor:pointer;
+}
+.tr .hd button:hover{border-color:var(--bad); color:var(--bad)}
+.tr .grid{padding:15px}
+.add{
+  width:100%; border:1px dashed var(--rule); background:transparent; color:var(--cu-ink);
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase;
+  padding:12px; border-radius:2px; cursor:pointer;
+}
+.add:hover{border-color:var(--cu); background:var(--cu-soft)}
+
+/* ── 시험 항목 ────────────────────────────────────────────── */
+.items{display:grid; grid-template-columns:repeat(auto-fit,minmax(252px,1fr)); gap:1px; background:var(--line);
+  border:1px solid var(--line); border-radius:2px}
+.item{
+  display:flex; align-items:flex-start; gap:11px; padding:11px 13px;
+  background:var(--panel); cursor:pointer; font-size:14px;
+}
+.item:hover{background:var(--cu-soft)}
+.item.on{background:var(--cu-soft)}
+.item input{width:16px; height:16px; margin:3px 0 0; flex:0 0 auto; accent-color:var(--cu)}
+.item .tx{min-width:0}
+.item .tx b{display:block; font-weight:500; letter-spacing:-.005em}
+.item.on .tx b{color:var(--cu-ink); font-weight:600}
+.item .tx span{font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--muted)}
+
+/* 고를 수 없는 항목 — 별도 문의 */
+.item.off{cursor:default; background:var(--sunk)}
+.item.off:hover{background:var(--sunk)}
+.item.off .box{
+  width:16px; height:16px; margin:3px 0 0; flex:0 0 auto; border-radius:2px;
+  border:1px solid var(--line); background:var(--field);
+}
+.item.off .tx b{color:var(--muted); font-weight:500}
+.item.off .tx b em{
+  font-style:normal; margin-left:5px; padding:1px 6px; border-radius:2px;
+  background:var(--cu-soft); border:1px solid var(--cu-line); color:var(--cu-ink);
+  font-family:var(--mono); font-size:9px; letter-spacing:.09em;
+}
+.item.off .tx span{opacity:.6}
+
+/* ── 산출 요약 (계기판 판독창) ─────────────────────────────── */
+.calc>h2{border-bottom-color:var(--cu-line)}
+.calc>h2 .n{color:var(--muted)}
+.readout{
+  display:grid; grid-template-columns:repeat(6,1fr);   /* 칸이 6개 — 나누어떨어지게 고정해 빈 자리가 안 생긴다 */
+  gap:1px; background:var(--line); border:1px solid var(--line); border-radius:2px;
+}
+/* 좁아지면 3칸 → 2칸으로. 6은 3으로도 2로도 나누어떨어져 빈 자리가 안 생긴다 */
+@media (max-width:820px){ .readout{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:430px){ .readout{grid-template-columns:repeat(2,1fr)} }
+.readout div{background:var(--panel); padding:12px 14px}
+.readout dt{
+  font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); margin:0 0 4px;
+}
+.readout dd{
+  margin:0; font-family:var(--mono); font-variant-numeric:tabular-nums;
+  font-size:20px; font-weight:700; letter-spacing:-.02em; color:var(--ink); line-height:1.15;
+}
+.readout dd u{
+  text-decoration:none; font-size:11.5px; font-weight:500; color:var(--muted);
+  margin-left:3px; letter-spacing:0;
+}
+.money{
+  margin-top:12px; padding:15px 16px; border:1px solid var(--cu-line); border-left-width:3px;
+  border-radius:2px; background:var(--cu-soft);
+}
+.money dt{
+  font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--cu-ink); margin:0 0 5px;
+}
+.money dd{
+  margin:0; font-family:var(--mono); font-variant-numeric:tabular-nums;
+  font-size:23px; font-weight:700; letter-spacing:-.02em; color:var(--cu-ink);
+}
+.money dd.none{font-size:14px; font-weight:500; color:var(--muted); font-family:var(--sans)}
+.money .ask{
+  margin:9px 0 0; padding:8px 11px; border-radius:2px; background:var(--panel);
+  font-size:12.5px; color:var(--ink-2); font-family:var(--sans); line-height:1.5;
+}
+.money .ask b{
+  color:var(--cu-ink); font-family:var(--mono); font-size:10px; letter-spacing:.1em;
+  text-transform:uppercase; margin-right:5px;
+}
+.money .cond{margin:7px 0 0; font-size:12px; color:var(--ink-2); font-family:var(--sans)}
+.money.hide{display:none}
+.money dt s{
+  text-decoration:none; margin-left:7px; padding:2px 7px; border-radius:2px;
+  background:var(--bad); color:#fff; letter-spacing:.08em; font-size:9.5px;
+}
+.money.draft{border-style:dashed; border-left-style:solid; border-color:var(--bad)}
+
+/* ── 보내기 ───────────────────────────────────────────────── */
+.send .pad{display:flex; gap:9px; flex-wrap:wrap}
+.go{
+  flex:1 1 188px; border:1px solid var(--cu); border-radius:2px; cursor:pointer;
+  font-family:inherit; font-size:14.5px; font-weight:600; padding:13px 16px;
+  background:var(--cu); color:var(--go-fg);
+  display:grid; place-items:center; text-align:center; text-decoration:none;
+}
+.go.alt{background:var(--panel); color:var(--cu-ink); font-weight:500}
+.go.kko{background:#fae100; border-color:#e5cf00; color:#191600}
+.go.sms{background:var(--panel); color:var(--cu-ink)}
+/* 붙여넣기가 필요한지 아닌지 버튼에 적어둔다 */
+.go em{
+  display:block; font-style:normal; font-family:var(--mono); font-size:9.5px;
+  letter-spacing:.1em; text-transform:uppercase; opacity:.72; margin-top:3px; font-weight:500;
+}
+.go:hover{filter:brightness(1.08)}
+.go.hide{display:none}
+.msg{
+  margin-top:13px; padding:11px 14px; border-radius:2px; font-size:13px;
+  background:var(--panel); border:1px solid var(--ok); border-left-width:3px; color:var(--ink);
+}
+.msg.err{border-color:var(--bad)}
+.msg.hide{display:none}
+.msg a{color:var(--cu-ink); text-underline-offset:3px}
+.msg a:hover{text-decoration-thickness:2px}
+#out{
+  margin-top:12px; width:100%; min-height:148px; font-family:var(--mono);
+  font-size:12px; white-space:pre; background:var(--sunk);
+}
+#out.hide{display:none}
+.foot{
+  color:var(--muted); font-size:11.5px; text-align:center; margin-top:8px;
+  font-family:var(--mono); letter-spacing:.06em; line-height:1.9;
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
+
+/* ── 좁은 화면: 군더더기를 덜어 길이를 줄인다 ──────────────── */
+@media (max-width:640px){
+  .wrap{padding:14px 12px 44px; gap:10px}
+  .plate .top{padding:17px 52px 15px 16px}
+  .plate h1{font-size:21px}
+  .plate .lede{font-size:12.5px}
+  .stamp{display:none}                      /* 공급자 정보는 맨 아래 푸터에 있다 */
+  .sec>h2, .sec>summary{padding:11px 15px}
+  .pad{padding:14px 15px}
+  .grid{gap:11px}
+  .item{padding:9px 11px}
+  .item .tx span{display:none}              /* 영문 부제는 접는다 */
+  .tr .grid{padding:12px}
+  .readout div{padding:10px 11px}
+  .readout dd{font-size:17px}
+  .go{flex:1 1 100%; padding:12px 14px; font-size:14px}
+  .foot{font-size:10.5px}
+}
+</style>
+
+<div class="wrap">
+
+<header class="plate">
+  <div class="top">
+    <button id="themetoggle" class="tgl" type="button" aria-pressed="false"
+            aria-label="어두운 화면으로 전환" title="어두운 화면으로 전환">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z"/>
+      </svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="4.1"/>
+        <path d="M12 2.4v2.4M12 19.2v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.4 12h2.4M19.2 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
+      </svg>
+    </button>
+    <p class="eyebrow">Field Test · Quotation Request</p>
+    <h1>변압기 현장시험 견적 요청</h1>
+    <p class="lede">아래를 채워 보내주시면 검토 후 견적서를 회신드립니다. <b>*</b> 표시는 꼭 필요한 항목입니다.</p>
+  </div>
+  <dl class="stamp">
+    <div><dt>공급자</dt><dd>미래전력연구소</dd></div>
+    <div><dt>담당</dt><dd>한승훈</dd></div>
+    <div><dt>등록번호</dt><dd>401-15-83004</dd></div>
+    <div><dt>사업장</dt><dd>서울 양천구 신정로14길 1</dd></div>
+  </dl>
+</header>
+
+<details class="sec" id="s1" open>
+  <summary><span class="n">01</span> 요청자</summary>
+  <div class="pad">
+    <div class="grid">
+      <div class="f"><label>회사 · 기관명 <span class="req">*</span></label><input id="coName" placeholder="㈜○○전기"></div>
+      <div class="f"><label>요청자 성함 <span class="req">*</span></label><input id="coPer" placeholder="홍길동"></div>
+      <div class="f"><label>연락처 <span class="req">*</span></label><input id="coTel" type="tel" inputmode="tel" placeholder="010-0000-0000"></div>
+      <div class="f"><label>이메일</label><input id="coMail" type="email" placeholder="name@company.co.kr"></div>
+      <div class="f"><label>요청일</label><input id="reqDate" type="date"></div>
+      <div class="f"><label>회신 희망 방법</label>
+        <select id="reply"><option>이메일</option><option>전화</option><option>문자 · 카카오톡</option></select>
+      </div>
+      <div class="f wide">
+        <label>생각하신 예산 <span class="req">*</span> <span class="per">변압기 1대당</span></label>
+        <div class="stepper">
+          <button type="button" id="bMinus" aria-label="예산 50만원 내리기">−</button>
+          <output id="budgetOut" for="bMinus bPlus" class="none">＋ 를 눌러 300만원부터</output>
+          <button type="button" id="bPlus" aria-label="예산 50만원 올리기">+</button>
+        </div>
+        <p class="hint" id="budgetHint">＋ 를 누르면 300만원에서 시작해 50만원씩 오릅니다. 예산에 맞춰 시험 항목을 조정해 다시 잡아드릴 수 있습니다.</p>
+      </div>
+    </div>
+  </div>
+</details>
+
+<details class="sec" id="s2">
+  <summary><span class="n">02</span> 시험 현장</summary>
+  <div class="pad">
+    <div class="grid">
+      <div class="f wide"><label>현장명 <span class="req">*</span></label><input id="site" placeholder="○○발전본부"></div>
+      <div class="f wide"><label>주소 · 위치</label><input id="addr" placeholder="○○시 ○○로 12"></div>
+      <div class="f"><label>희망 시험일 <span class="req">*</span></label><input id="d1" type="date"></div>
+      <div class="f"><label>종료 예정일</label><input id="d2" type="date"></div>
+      <div class="f"><label>작업 시간대</label>
+        <select id="shift"><option>주간</option><option>야간</option><option>주말 · 공휴일</option><option>미정 · 협의</option></select>
+      </div>
+      <div class="f"><label>정전 가능 여부</label>
+        <select id="outage"><option>정전 가능 (완전 정전)</option><option>부분 정전</option><option>정전 불가 (활선)</option><option>미정 · 협의</option></select>
+      </div>
+    </div>
+  </div>
+</details>
+
+<details class="sec" id="s3">
+  <summary><span class="n">03</span> 변압기 <span class="note" id="trCnt"></span></summary>
+  <div class="pad">
+    <div id="trs"></div>
+    <button class="add" id="addTr" type="button">+ 변압기 추가</button>
+  </div>
+</details>
+
+<details class="sec" id="s4">
+  <summary><span class="n">04</span> 시험 항목 <span class="note">해당되는 것을 모두</span></summary>
+  <div class="pad">
+    <div class="items" id="items"></div>
+    <p class="hint" style="margin:11px 0 0">
+      <b>부싱 절연역률 C2</b> 와 <b>BCT 포화특성(Knee point)</b> 은 별도 문의 항목이라 고를 수 없습니다.
+      필요하시면 아래 칸이나 「참고사항」에 적어주세요.
+    </p>
+    <div class="f wide" style="margin-top:15px">
+      <label>그 밖에 필요한 시험</label>
+      <input id="etcItem" placeholder="예) 부싱 C2, 유중가스 분석">
+    </div>
+  </div>
+</details>
+
+<section class="sec calc" id="calcSec">
+  <h2><span class="n">—</span> 산출 요약 <span class="note">고르신 내용으로 바로 계산됩니다</span></h2>
+  <div class="pad">
+    <div class="readout" id="readout"></div>
+    <div class="money hide" id="money"></div>
+    <p class="hint" id="calcNote"></p>
+  </div>
+</section>
+
+<details class="sec" id="s5">
+  <summary><span class="n">05</span> 참고사항 <span class="note">선택</span></summary>
+  <div class="pad">
+    <div class="f">
+      <label>요청사항 · 현장 여건</label>
+      <textarea id="memo" placeholder="예) 정기점검 기간에 2회 나눠 시험 예정입니다. 명판 사진과 결선도는 회신 메일에 첨부하겠습니다."></textarea>
+      <p class="hint">도면 · 명판 사진 같은 첨부파일은 이 화면으로는 보낼 수 없습니다. 메일로 보내실 때 함께 첨부해 주세요.</p>
+    </div>
+  </div>
+</details>
+
+<section class="sec send">
+  <h2><span class="n">06</span> 보내기 <span class="note">편한 것 하나로</span></h2>
+  <div class="pad">
+    <button class="go" id="bMail" type="button">메일로 보내기 <em>붙여넣기</em></button>
+    <a class="go sms hide" id="bSms">문자로 보내기 <em>바로 전송</em></a>
+    <a class="go kko hide" id="bKko" target="_blank" rel="noopener">카카오톡으로 보내기 <em>붙여넣기</em></a>
+    <button class="go alt" id="bCopy" type="button">내용 복사</button>
+    <div class="msg hide" id="msg"></div>
+    <textarea id="out" class="hide" readonly></textarea>
+  </div>
+</section>
+
+<p class="foot">
+  미래전력연구소 · 서울 양천구 신정로14길 1 · 사업자등록번호 401-15-83004<br>
+  보내주신 내용은 견적 회신 목적으로만 사용합니다.
+</p>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+var $  = function(s,r){ return (r||document).querySelector(s); };
+var $$ = function(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+
+var MAIL_TO = 'justin.hans@outlook.com';
+
+/* 카카오톡 채널 채팅방 주소.
+   채널을 만들면 여기에 넣으세요 — 예: 'https://pf.kakao.com/_abcdxb/chat'
+   비워두면 [카카오톡으로 보내기] 버튼이 아예 안 나오고, [내용 복사] 만 씁니다.
+
+   ※ 고객 화면에서 사장님 카톡으로 «자동 발송» 되는 것은 아닙니다.
+     내용이 복사된 채로 채팅방이 열리므로, 고객이 붙여넣고 보내야 합니다. */
+var KAKAO_CHAT = 'https://pf.kakao.com/_YNQiX/chat';
+
+/* 문자로 받을 번호. 넣으면 [문자로 보내기] 버튼이 생깁니다.
+   문자는 «본문이 미리 채워진 채로» 열려서, 고객이 붙여넣지 않고 전송만 누르면 됩니다.
+   예: '01012345678'  (하이픈 없이)
+   비워두면 버튼이 안 나옵니다. */
+var SMS_TO = '01080010119';
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   산출 기준  ―  여기 숫자만 고치면 화면 계산이 전부 따라갑니다.
+
+   ※ 단가·할인율은 «이 파일에 두지 않습니다».
+     이 화면은 브라우저에서 도는 자바스크립트라, 파일을 받은 사람이면
+     누구나 소스를 열어 볼 수 있습니다. 금액은 「견적 접수함」에서
+     담당자가 넣고, 고객에게는 정식 견적서로만 알립니다.
+   ══════════════════════════════════════════════════════════════ */
+var RATES = {
+  /* 변압기 1대당 시험 소요 (분). 실제 작업 기준. */
+  minPerItem: {
+    ttr:50,      // 전압비 + 위상각 + 여자전류
+    sc:30,       // 단락전류 = 임피던스
+    wr:45, ir:30, pf:60,
+    bpf:30, bpf2:30,   // 부싱 절연역률 — 개수와 무관한 고정값
+    bct:5, knee:10,    // 이 둘은 부싱 CT 개수만큼 곱해집니다
+    sfra:60
+  },
+  oltcExtra:  { ttr:45, wr:50 },   // OLTC 있으면 탭 전수 시험이라 더 걸리는 분
+  setupMin:   90,            // 현장 준비 + 철수 (1일당)
+  moveMin:    45,            // 변압기 사이 결선 옮기는 시간 (2대째부터, 대당)
+  hoursPerDay: 8,            // 하루 실작업 시간
+  menBase:    2,             // 기본 투입 인원
+  menBigTr:    3,            // 이 대수 이상이면 인원 +1
+  menBigHours: 24            // 총 소요가 이 시간을 넘으면 인원 +1
+};
+
+/* 어느 링크로 들어왔는지만 «글자 그대로» 넘긴다.
+   그 글자가 몇 % 인지는 이 화면이 알 필요가 없다 — 접수함이 안다.
+     단골 협력사 : ...견적요청서.html?g=A
+     신규 문의   : 그냥 주소 (D)                                    */
+var GRADE = (function(){
+  var m = /[?#&]g=([A-Za-z])/.exec(location.search + location.hash);
+  return m ? m[1].toUpperCase() : 'D';
+})();
+
+/* 화면에 보이는 차례 그대로입니다. 순서를 바꾸려면 줄을 옮기세요. */
+var ITEMS = [
+  { k:'ttr',  t:'전압비 / 위상각 / 여자전류',    d:'TTR · Phase angle · Excitation' },
+  { k:'sc',   t:'단락전류 (임피던스)',           d:'Short circuit · Impedance' },
+  { k:'wr',   t:'권선저항 측정',                d:'Winding resistance' },
+  { k:'ir',   t:'절연저항 측정',                d:'Insulation resistance' },
+  { k:'pf',   t:'절연역률(Power Factor) 시험',  d:'권선 PF & CAP' },
+  { k:'bpf',  t:'부싱 절연역률 C1',             d:'Bushing PF & CAP — C1' },
+  { k:'bpf2', t:'부싱 절연역률 C2',             d:'Bushing PF & CAP — C2', off:true },
+  { k:'bct',  t:'BCT 변류비 및 극성 시험',       d:'Ratio · Polarity · IR' },
+  /* off:true → 고를 수 없고 «별도 문의» 로만 표시됩니다 */
+  { k:'knee', t:'BCT 포화특성 (Knee point)',    d:'여자특성 곡선', off:true },
+  { k:'sfra', t:'SFRA(주파수응답분석) 시험',     d:'권선 변형 진단' }
+];
+
+var trSeq = 0;
+function trRow(){
+  trSeq++;
+  var d = document.createElement('div');
+  d.className = 'tr';
+  d.innerHTML =
+    '<div class="hd"><span class="nm">변압기</span>' +
+    '<button type="button" class="del">삭제</button></div>' +
+    /* 꼭 필요한 넷만 먼저 보이고, 나머지는 [자세히] 안에 둔다 */
+    '<div class="grid">' +
+      '<div class="f"><label>호기 · 설비명</label><input data-k="name" placeholder="#1 주변압기, GT TR"></div>' +
+      '<div class="f"><label>대수</label><input data-k="qty" type="number" min="1" step="1" value="1"></div>' +
+      '<div class="f"><label>용량</label><input data-k="cap" placeholder="70 MVA, 4000 kVA"></div>' +
+      '<div class="f"><label>전압 1차 / 2차</label><input data-k="volt" placeholder="154 / 22.9 kV"></div>' +
+    '</div>' +
+    '<div class="grid extra">' +
+      '<div class="f"><label>부싱 CT 수량</label><input data-k="bct" placeholder="6개, 없으면 0"></div>' +
+      '<div class="f"><label>부싱 개수</label><input data-k="bush" placeholder="6개 (C1 대상)"></div>' +
+      '<div class="f"><label>OLTC 부하시 탭절환</label><select data-k="oltc">' +
+        '<option>없음</option><option>있음</option><option>모름</option></select></div>' +
+      '<div class="f"><label>제조사</label><input data-k="maker" placeholder="LS, 효성"></div>' +
+      '<div class="f"><label>제조번호 S/N</label><input data-k="sn" placeholder="예) 1234567-01"></div>' +
+      '<div class="f"><label>절연 방식</label><select data-k="ins">' +
+        '<option>유입식</option><option>몰드식</option><option>건식</option><option>모름</option></select></div>' +
+      '<div class="f"><label>상(相)</label><select data-k="ph">' +
+        '<option>3상</option><option>단상</option></select></div>' +
+    '</div>' +
+    '<button type="button" class="more-tr">+ 자세히 (부싱 · OLTC · 제조사)</button>';
+  $('.del', d).onclick = function(){
+    if($$('#trs .tr').length <= 1){ flash('변압기는 최소 한 대가 필요합니다.', true); return; }
+    d.remove(); renumber(); drawCalc(); drawBudget();
+  };
+  $('.more-tr', d).onclick = function(){
+    var open = d.classList.toggle('open');
+    this.textContent = open ? '− 자세히 접기' : '+ 자세히 (부싱 · OLTC · 제조사)';
+  };
+  return d;
+}
+function renumber(){
+  $$('#trs .tr').forEach(function(el,i){ $('.nm', el).textContent = 'TR ' + String(i+1).padStart(2,'0'); });
+  $('#trCnt').textContent = $$('#trs .tr').length + ' 대';
+}
+$('#addTr').onclick = function(){
+  $('#trs').appendChild(trRow()); renumber(); drawCalc(); drawBudget();
+};
+
+$('#items').innerHTML = ITEMS.map(function(it){
+  if(it.off){
+    return '<div class="item off" data-k="' + it.k + '" title="별도 문의 항목입니다">' +
+      '<span class="box"></span>' +
+      '<span class="tx"><b>' + it.t + ' <em>별도 문의</em></b>' +
+      (it.d ? '<span>' + it.d + '</span>' : '') + '</span></div>';
+  }
+  return '<label class="item" data-k="' + it.k + '"><input type="checkbox">' +
+    '<span class="tx"><b>' + it.t + '</b>' + (it.d ? '<span>' + it.d + '</span>' : '') + '</span></label>';
+}).join('');
+$$('#items .item').forEach(function(el){
+  var cb = $('input', el);
+  if(!cb) return;
+  cb.onchange = function(){ el.classList.toggle('on', cb.checked); drawCalc(); };
+});
+
+/* 어느 칸이 바뀌든 산출을 다시 한다 (변압기 칸은 나중에 생기므로 위임) */
+['input','change'].forEach(function(ev){
+  document.addEventListener(ev, function(e){
+    if(!e.target.closest) return;
+    if(e.target.closest('#trs, #items, #etcItem, .wrap')){ drawCalc(); markSections(); }
+    /* 대수가 바뀌면 예산 합계 안내도 다시 쓴다 */
+    if(e.target.matches('[data-k="qty"]')) drawBudget();
+  });
+});
+
+var SENT = false;   // [보내기] 를 한 번이라도 누르면 true → 금액이 열린다
+
+/* ── 예산 토글 (변압기 1대당, 만원 단위) ─────────────────── */
+var BUD_STEP = 50, BUD_MAX = 5000;
+var BUD_START = 300;                  // 첫 [+] 를 눌렀을 때 앉는 값 (만원)
+var BUDGET = 0;                       // 0 = 아직 안 고름. 필수라 이대로는 못 보낸다.
+var BUD_MISS = false;                 // [보내기] 를 눌렀는데 비어 있었다
+
+function drawBudget(){
+  var out = $('#budgetOut'), empty = (BUDGET === 0), miss = empty && BUD_MISS;
+  out.classList.toggle('none', empty);
+  out.textContent = empty
+    ? '＋ 를 눌러 ' + BUD_START.toLocaleString('ko-KR') + '만원부터'
+    : '1대당 ' + BUDGET.toLocaleString('ko-KR') + ' 만원';
+  $('#bMinus').disabled = empty;               // 비어 있으면 내릴 것이 없다
+  $('#bPlus').disabled  = BUDGET >= BUD_MAX;
+  $('.stepper').classList.toggle('bad', miss);
+  $('#budgetHint').classList.toggle('bad', miss);
+
+  var hint;
+  if(miss){
+    /* 못 채웠다는 안내는 저 아래 「보내기」 절에 뜬다. 그런데 화면이 이 칸으로
+       옮겨오면 그 글이 화면 밖으로 나가서, 빨간 테두리만 보이고 이유는 안 보였다.
+       그래서 이유를 칸 바로 아래에도 적는다. */
+    hint = '＊ 예산을 정해 주세요. ＋ 를 누르면 ' + BUD_START.toLocaleString('ko-KR') +
+           '만원에서 시작해 ' + BUD_STEP + '만원씩 오릅니다.';
+  } else if(empty){
+    hint = '＋ 를 누르면 ' + BUD_START.toLocaleString('ko-KR') + '만원에서 시작해 ' +
+           BUD_STEP + '만원씩 오릅니다. 예산에 맞춰 시험 항목을 조정해 다시 잡아드릴 수 있습니다.';
+  } else {
+    var n = 0;
+    $$('#trs .tr').forEach(function(el){
+      n += Math.max(1, parseInt($('[data-k="qty"]', el).value, 10) || 1);
+    });
+    hint = BUD_STEP + '만원씩 조절됩니다. 변압기 ' + n + '대 → 합계 ' +
+           (BUDGET * n).toLocaleString('ko-KR') + ' 만원 기준으로 봅니다.';
+    if(BUDGET <= BUD_START) hint += ' [−] 를 한 번 더 누르면 처음으로 돌아갑니다.';
+  }
+  $('#budgetHint').textContent = hint;
+}
+/* 비어 있을 때 [+] 는 50이 아니라 300 에 앉고,
+   300 에서 [−] 는 250 이 아니라 «처음(비어 있음)» 으로 돌아간다. */
+function bumpBudget(step){
+  BUD_MISS = false;               // 손을 대는 순간 경고는 내린다
+  if(BUDGET === 0){
+    if(step > 0) BUDGET = BUD_START;
+  } else {
+    var v = BUDGET + step;
+    BUDGET = (v < BUD_START) ? 0 : Math.min(BUD_MAX, v);
+  }
+  drawBudget();
+}
+
+/* ── 산출 ────────────────────────────────────────────────── */
+function estimate(d){
+  var items = d.items || [];
+  var trTotal = 0, minutes = 0, unitCount = 0, needCt = false;
+
+  d.trs.forEach(function(t, idx){
+    var qty = Math.max(1, parseInt(t.qty, 10) || 1);
+    trTotal += qty;
+    var per = 0;
+    items.forEach(function(k){
+      var m = RATES.minPerItem[k] || 0;
+      if(t.oltc === '있음' && RATES.oltcExtra[k]) m += RATES.oltcExtra[k];
+      /* BCT 관련 시험은 부싱 CT 개수만큼 되풀이한다.
+         수량을 안 적었으면 시간을 셀 수 없다 — 0분으로 삼키지 말고 알린다. */
+      if(k === 'bct' || k === 'knee'){
+        var n = parseInt(String(t.bct).replace(/[^0-9]/g,''), 10);
+        if(n > 0){ m = m * n; } else { m = 0; needCt = true; }
+      }
+      per += m;
+    });
+    minutes += per * qty;
+    if(idx > 0 || qty > 1) minutes += RATES.moveMin * (qty - (idx === 0 ? 1 : 0));
+    unitCount += qty * items.length;
+  });
+
+  /* 준비·철수 90분은 «날마다» 든다. 그래서 하루에 실제로 시험할 수 있는 시간은
+     8시간이 아니라 6시간 30분(390분)이다. 이 값으로 일수를 먼저 정해야
+     일수와 총 소요가 어긋나지 않는다.
+     (예전 식은 준비시간을 하루치만 넣고 일수를 정한 뒤 일수만큼 다시 더해서,
+      5대가 넘어가면 표시된 일수 안에 총 소요가 들어가지 않았다.) */
+  var netPerDay = Math.max(60, RATES.hoursPerDay * 60 - RATES.setupMin);
+  var days = Math.max(1, Math.ceil(minutes / netPerDay));
+  minutes += RATES.setupMin * days;
+  var hours = minutes / 60;
+  /* 일수가 늘면 하루 환산은 늘 8시간 근처라, 인원은 일감 크기로 판단한다 */
+  var men = RATES.menBase +
+    ((trTotal >= RATES.menBigTr || hours >= RATES.menBigHours) ? 1 : 0);
+
+  return {
+    trTotal: trTotal, itemCount: items.length + (d.etc ? 1 : 0),
+    hours: hours, perTr: trTotal ? hours / trTotal : 0,
+    days: days, men: men, unitCount: unitCount,
+    hasEtc: !!d.etc, needCt: needCt
+  };
+}
+
+function drawCalc(){
+  var d = collect(), e = estimate(d);
+  var cells = [
+    ['변압기', e.trTotal, '대'],
+    ['시험 항목', e.itemCount, '종'],
+    ['대당 소요', e.perTr ? e.perTr.toFixed(1) : '–', 'H'],
+    ['총 소요', e.hours ? e.hours.toFixed(1) : '–', 'H'],
+    ['작업 일수', e.days, '일'],
+    ['투입 인원', e.men, '인']
+  ];
+  $('#readout').innerHTML = cells.map(function(c){
+    return '<div><dt>' + c[0] + '</dt><dd>' + c[1] + '<u>' + c[2] + '</u></dd></div>';
+  }).join('');
+
+  /* 요청을 보낸 뒤에만 뜨는 접수 안내.
+     금액은 여기 띄우지 않는다 — 정식 견적서로만 알린다. */
+  var noItems = e.itemCount === 0;
+  var mEl = $('#money');
+  if(SENT && !noItems){
+    mEl.classList.remove('hide');
+    mEl.innerHTML =
+      '<dt>요청이 접수되었습니다</dt>' +
+      '<dd class="none">검토 후 정식 견적서로 회신드립니다.</dd>' +
+      '<p class="cond">부가세 별도 · 현장 여건(이동거리, 정전조건, 야간작업)에 따라 달라집니다. ' +
+      '적어주신 예산과 차이가 크면 시험 항목을 조정해 다시 잡아드릴 수 있으니 편하게 말씀해 주세요.</p>';
+  } else {
+    mEl.classList.add('hide');
+  }
+
+  var note = [];
+  if(noItems) note.push('시험 항목을 고르시면 소요시간이 계산됩니다.');
+  if(e.hasEtc) note.push('직접 적으신 항목은 소요시간에 반영되지 않았습니다.');
+  if(e.needCt) note.push('BCT 시험은 「부싱 CT 수량」을 적어야 소요시간에 들어갑니다. 지금은 빠져 있습니다.');
+  note.push('현장 도착 이후 기준이며, 이동시간은 빠져 있습니다. 실제 일정은 협의 후 확정됩니다.');
+  $('#calcNote').textContent = note.join(' ');
+}
+
+function val(id){ return ($('#'+id).value || '').trim(); }
+function collect(){
+  return {
+    v: 1,
+    co: { name:val('coName'), per:val('coPer'), tel:val('coTel'), mail:val('coMail'),
+          date:val('reqDate'), reply:val('reply') },
+    g: GRADE,
+    /* budget = 변압기 1대당 예산 (만원). 0 이면 미정 */
+    site:{ name:val('site'), addr:val('addr'), d1:val('d1'), d2:val('d2'),
+           shift:val('shift'), outage:val('outage'), budget:BUDGET },
+    trs: $$('#trs .tr').map(function(el){
+      var o = {};
+      $$('[data-k]', el).forEach(function(i){ o[i.dataset.k] = (i.value||'').trim(); });
+      return o;
+    }),
+    /* 별도 문의 항목(.off)은 체크박스가 없으므로 걸러진다 */
+    items: $$('#items .item').filter(function(el){
+             var cb = $('input', el); return cb && cb.checked;
+           }).map(function(el){ return el.dataset.k; }),
+    etc: val('etcItem'),
+    memo: val('memo')
+  };
+}
+
+/* ── 연락처 하이픈 ────────────────────────────────────────
+   01080010119 → 010-8001-0119 처럼 적는 대로 끼워 넣는다.
+   서울(02)·대표번호(1588)·시외국번 자릿수를 갈라 본다.
+   +82 나 「내선」 같은 글자가 섞이면 사람이 뜻이 있어 적은 것이므로 손대지 않는다. */
+function fmtTel(v){
+  if(/[^0-9\-\s()]/.test(v)) return v;
+  var d = v.replace(/[^0-9]/g, '').slice(0, 11);
+  if(!d) return '';
+  if(/^1[5-9]/.test(d) && d.length <= 8)          // 1588-1234 형태
+    return d.length > 4 ? d.slice(0,4) + '-' + d.slice(4) : d;
+  var a = /^02/.test(d) ? 2 : 3;                  // 지역번호 자릿수
+  /* 010 은 국번이 늘 4자리다. 이걸 못 박아야 «010-8001-0119» 에서 한 칸 지울 때
+     «010-800-1011» 로 흩어지지 않고 «010-8001-011» 로 얌전히 줄어든다. */
+  var b = /^010/.test(d) ? 4
+        : (d.length > (a === 2 ? 9 : 10)) ? 4 : 3;
+  if(d.length <= a)     return d;
+  if(d.length <= a + b) return d.slice(0,a) + '-' + d.slice(a);
+  return d.slice(0,a) + '-' + d.slice(a, a+b) + '-' + d.slice(a+b);
+}
+function bindTel(el){
+  el.addEventListener('input', function(){
+    /* 커서 앞의 «숫자 개수» 를 세어 두었다가, 다시 그 자리로 돌려놓는다.
+       그래야 가운데를 고쳐도 커서가 끝으로 튀지 않는다. */
+    var before = el.value.slice(0, el.selectionStart || 0).replace(/[^0-9]/g,'').length;
+    var out = fmtTel(el.value);
+    if(out === el.value) return;
+    el.value = out;
+    var i = 0, n = 0;
+    while(i < out.length && n < before){ if(/[0-9]/.test(out.charAt(i))) n++; i++; }
+    try{ el.setSelectionRange(i, i); }catch(e){}
+  });
+}
+bindTel($('#coTel'));
+
+var REQUIRED = [
+  ['coName','회사 · 기관명'], ['coPer','요청자 성함'], ['coTel','연락처'],
+  ['site','현장명'], ['d1','희망 시험일']
+];
+/* 보내기가 성공했을 때 금액을 열고 그 자리로 데려간다 */
+function markSent(){
+  if(SENT) return;
+  SENT = true;
+  drawCalc();
+  var el = $('#money');
+  if(!el.classList.contains('hide')) el.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function validate(){
+  var miss = [];
+  REQUIRED.forEach(function(p){
+    var el = $('#'+p[0]), ok = !!el.value.trim();
+    el.classList.toggle('bad', !ok);
+    if(!ok) miss.push(p[1]);
+  });
+  var d = collect();
+  /* 예산은 <output> 이라 REQUIRED 의 value 검사에 못 태운다. 따로 본다. */
+  BUD_MISS = (BUDGET <= 0);
+  drawBudget();                   // 테두리와 이유 문구를 함께 세운다
+  if(BUD_MISS) miss.push('생각하신 예산');
+  if(!d.items.length && !d.etc) miss.push('시험 항목');
+  if(miss.length){
+    flash('아직 안 채워진 곳이 있습니다 — ' + miss.join(', '), true);
+    /* 덜 채운 칸이 접힌 절 안에 있으면 그 절을 펼쳐야 보인다 */
+    var f = $('input.bad') || $('.stepper.bad');
+    if(!f && !d.items.length && !d.etc) f = $('#items');
+    if(f){
+      var sec = f.closest('details.sec');
+      if(sec) sec.open = true;
+      f.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+    return null;
+  }
+  return d;
+}
+
+function itemName(k){
+  for(var i=0;i<ITEMS.length;i++){ if(ITEMS[i].k === k) return ITEMS[i].t; }
+  return k;
+}
+function summary(d){
+  var L = [];
+  L.push('■ 변압기 현장시험 견적 요청');
+  L.push('');
+  L.push('[요청자]');
+  L.push('  회사   : ' + d.co.name);
+  L.push('  성함   : ' + d.co.per);
+  L.push('  연락처 : ' + d.co.tel + (d.co.mail ? '  /  ' + d.co.mail : ''));
+  L.push('  요청일 : ' + (d.co.date || '-') + '   회신 : ' + d.co.reply);
+  L.push('');
+  L.push('[현장]');
+  L.push('  현장명 : ' + d.site.name);
+  if(d.site.addr) L.push('  위치   : ' + d.site.addr);
+  L.push('  희망일 : ' + d.site.d1 + (d.site.d2 ? ' ~ ' + d.site.d2 : ''));
+  L.push('  시간대 : ' + d.site.shift + '   정전 : ' + d.site.outage);
+  if(d.site.budget > 0){
+    var trN = 0;
+    d.trs.forEach(function(t){ trN += Math.max(1, parseInt(t.qty,10) || 1); });
+    L.push('  예산   : 1대당 ' + d.site.budget.toLocaleString('ko-KR') + '만원' +
+           ' (' + trN + '대 → 합계 ' + (d.site.budget * trN).toLocaleString('ko-KR') + '만원)');
+  }
+  L.push('');
+  L.push('[변압기 ' + d.trs.length + ' 종]');
+  d.trs.forEach(function(t,i){
+    L.push('  ' + (i+1) + ') ' + (t.name || '(이름 없음)') + '   ' + (t.qty || 1) + ' 대');
+    L.push('     용량 ' + (t.cap || '-') + '   전압 ' + (t.volt || '-') + '   ' + t.ph + ' · ' + t.ins);
+    var x = [];
+    if(t.maker) x.push('제조사 ' + t.maker);
+    if(t.sn)    x.push('S/N ' + t.sn);
+    x.push('OLTC ' + t.oltc);
+    if(t.bct)   x.push('BCT ' + t.bct);
+    L.push('     ' + x.join('   '));
+  });
+  L.push('');
+  L.push('[시험 항목]');
+  d.items.forEach(function(k){ L.push('  - ' + itemName(k)); });
+  if(d.etc) L.push('  - ' + d.etc + ' (직접 입력)');
+  if(d.memo){
+    L.push('');
+    L.push('[참고사항]');
+    d.memo.split('\n').forEach(function(x){ L.push('  ' + x); });
+  }
+  var e = estimate(d);
+  L.push('');
+  L.push('[화면 산출값 — 참고]');
+  L.push('  변압기 ' + e.trTotal + '대 · 항목 ' + e.itemCount + '종');
+  L.push('  대당 ' + e.perTr.toFixed(1) + 'H · 총 ' + e.hours.toFixed(1) + 'H · ' +
+         e.days + '일 · ' + e.men + '인');
+  return L.join('\n');
+}
+
+/* 보내는 글 전문 — 사람이 읽는 요약 + 담당자용 암호줄.
+   암호줄이 지워지면 접수함이 내용을 못 읽으므로 반드시 안내를 붙인다. */
+function fullText(d){
+  return summary(d) +
+    '\n\n──────────' +
+    '\n※ 아래 한 줄은 견적 담당자가 내용을 읽어들이는 데 씁니다. 지우지 말고 함께 보내주세요.' +
+    '\nQREQ1:' + pack(d);
+}
+
+function pack(d){
+  var bytes = new TextEncoder().encode(JSON.stringify(d));
+  var s = '';
+  bytes.forEach(function(b){ s += String.fromCharCode(b); });
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+var msgT = null;
+function showMsg(html, isErr, keep){
+  var m = $('#msg');
+  m.innerHTML = html;
+  m.classList.remove('hide');
+  m.classList.toggle('err', !!isErr);
+  clearTimeout(msgT);
+  if(!keep) msgT = setTimeout(function(){ m.classList.add('hide'); }, 8000);
+}
+function flash(text, isErr){ showMsg(esc(text), isErr); }
+function showOut(text){
+  var o = $('#out');
+  o.value = text; o.classList.remove('hide');
+  o.focus(); o.select();
+}
+/* 안내 문구를 따로 띄우고 싶을 때 쓰는, 조용한 복사 */
+function copyQuiet(text){
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(null, function(){ selectOut(text); });
+  } else selectOut(text);
+}
+function selectOut(text){
+  showOut(text);
+  try{ document.execCommand('copy'); }catch(e){}
+}
+
+function copy(text, okMsg){
+  function fallback(){
+    showOut(text);
+    try{
+      document.execCommand('copy');
+      flash(okMsg + ' (복사되었습니다)');
+    }catch(e){
+      flash('아래 칸의 내용을 길게 눌러 직접 복사해 주세요.', true);
+    }
+  }
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(function(){
+      flash(okMsg + ' (복사되었습니다)');
+      showOut(text);
+    }, fallback);
+  } else fallback();
+}
+
+/* 카카오톡 — 내용을 복사한 뒤 채널 채팅방을 열어준다.
+   자동 발송이 아니므로, 붙여넣어 보내야 한다는 안내를 반드시 남긴다. */
+/* 문자 — 본문이 채워진 채로 문자 앱이 열린다. 붙여넣기가 필요 없다.
+   iOS 와 안드로이드가 구분자를 달리 쓰므로 '?&' 를 넣어 양쪽에서 먹게 한다. */
+if(SMS_TO){
+  var sms = $('#bSms');
+  sms.classList.remove('hide');
+  sms.onclick = function(ev){
+    var d = validate();
+    if(!d){ ev.preventDefault(); return; }
+    var text = fullText(d);
+    sms.href = 'sms:' + SMS_TO + '?&body=' + encodeURIComponent(text);
+    copyQuiet(text);          // 문자 앱이 안 열리는 PC 대비
+    showMsg('문자 앱이 <b>내용이 채워진 채로</b> 열립니다. 전송만 눌러주세요.' +
+            '<br><br>열리지 않으면(PC 등) 아래 칸의 내용을 복사해 ' +
+            '<b>' + esc(MAIL_TO) + '</b> 로 보내주세요.', false, true);
+    showOut(text);
+    markSent();
+  };
+}
+
+if(KAKAO_CHAT){
+  var kko = $('#bKko');
+  kko.href = KAKAO_CHAT;                 // 진짜 링크 — 새 창 차단에 걸리지 않는다
+  kko.classList.remove('hide');
+  kko.onclick = function(ev){
+    var d = validate();
+    if(!d){ ev.preventDefault(); return; }   // 덜 채웠으면 채팅방을 열지 않는다
+    var text = fullText(d);
+    copyQuiet(text);
+    /* 채팅방이 안 열리는 환경(팝업 차단, 카카오 미설치, 1:1 채팅 꺼짐)이 있으므로
+       직접 누를 수 있는 링크와 대체 수단을 함께 남긴다. */
+    showMsg(
+      '내용이 <b>복사</b>되었습니다. 카카오톡 채팅방에 <b>붙여넣고 전송</b>해 주세요. 끝의 긴 줄도 함께 보내주셔야 합니다.' +
+      '<br><br>채팅방이 열리지 않았다면 &rarr; ' +
+      '<a href="' + esc(KAKAO_CHAT) + '" target="_blank" rel="noopener"><b>미래전력연구소 채널 열기</b></a>' +
+      '<br>그래도 안 되면 아래 칸의 내용을 복사해 <b>' + esc(MAIL_TO) + '</b> 로 보내주세요.',
+      false, true);
+    showOut(text);
+    markSent();
+  };
+}
+
+/* 메일 — 내용을 복사한 뒤 «제목만 채운» 메일 창을 연다.
+   본문까지 mailto 에 실으면 한글이 글자당 9자로 부풀어(최소 요청도 3,100자,
+   보통 5,000자) 어떤 메일 프로그램도 열리지 않는다. 그래서 본문은 붙여넣게 한다. */
+$('#bMail').onclick = function(){
+  var d = validate(); if(!d) return;
+  var subj = '[견적요청] ' + d.site.name + ' 변압기 현장시험 — ' + d.co.name;
+  var text = fullText(d);
+  copyQuiet(text);
+  location.href = 'mailto:' + MAIL_TO + '?subject=' + encodeURIComponent(subj);
+  showMsg('내용이 <b>복사</b>되었습니다. 열린 메일 창에 <b>붙여넣고 전송</b>해 주세요. ' +
+          '끝의 긴 줄도 함께 보내주셔야 합니다.' +
+          '<br>도면 · 명판 사진이 있으면 이때 함께 첨부해 주세요.' +
+          '<br><br>메일 창이 열리지 않았다면(PC 등) 아래 칸의 내용을 복사해 ' +
+          '<b>' + esc(MAIL_TO) + '</b> 로 보내주세요.', false, true);
+  showOut(text);
+  markSent();
+};
+
+$('#bCopy').onclick = function(){
+  var d = validate(); if(!d) return;
+  copy(fullText(d), '카카오톡이나 문자에 붙여넣어 보내주세요. 끝의 긴 줄도 함께 보내주셔야 합니다.');
+  markSent();
+};
+
+
+function unpack(s){
+  var b = s.replace(/-/g,'+').replace(/_/g,'/');
+  while(b.length % 4) b += '=';
+  var bin = atob(b), arr = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return JSON.parse(new TextDecoder().decode(arr));
+}
+function restore(d){
+  ['coName','coPer','coTel','coMail','reqDate','reply'].forEach(function(id,i){
+    $('#'+id).value = [d.co.name,d.co.per,d.co.tel,d.co.mail,d.co.date,d.co.reply][i] || '';
+  });
+  $('#coTel').value = fmtTel($('#coTel').value);   // 예전 요청은 하이픈이 없을 수 있다
+  ['site','addr','d1','d2','shift','outage'].forEach(function(id,i){
+    $('#'+id).value = [d.site.name,d.site.addr,d.site.d1,d.site.d2,
+                       d.site.shift,d.site.outage][i] || '';
+  });
+  /* 예전 판은 예산을 글자로 담았으므로 숫자만 살려낸다 */
+  BUDGET = typeof d.site.budget === 'number'
+    ? d.site.budget
+    : (parseInt(String(d.site.budget||'').replace(/[^0-9]/g,''), 10) || 0);
+  BUDGET = Math.round(BUDGET / BUD_STEP) * BUD_STEP;
+  if(BUDGET > 0) BUDGET = Math.min(BUD_MAX, Math.max(BUD_START, BUDGET));
+  $('#trs').innerHTML = '';
+  (d.trs||[]).forEach(function(t){
+    var el = trRow();
+    $$('[data-k]', el).forEach(function(i){ if(t[i.dataset.k] != null) i.value = t[i.dataset.k]; });
+    /* 부수 항목에 값이 있으면 [자세히] 를 펼쳐 보이게 한다 */
+    var hasExtra = ['bct','bush','maker','sn'].some(function(k){ return t[k]; }) || t.oltc === '있음';
+    if(hasExtra){
+      el.classList.add('open');
+      $('.more-tr', el).textContent = '− 자세히 접기';
+    }
+    $('#trs').appendChild(el);
+  });
+  if(!$$('#trs .tr').length) $('#trs').appendChild(trRow());
+  renumber();
+  $$('#items .item').forEach(function(el){
+    var cb = $('input', el);
+    if(!cb) return;
+    var on = (d.items||[]).indexOf(el.dataset.k) >= 0;
+    cb.checked = on; el.classList.toggle('on', on);
+  });
+  $('#etcItem').value = d.etc || '';
+  $('#memo').value = d.memo || '';
+  drawBudget();
+  drawCalc();
+  markSections();
+}
+
+/* ── 절 접기 ─────────────────────────────────────────────── */
+/* 좁은 화면은 첫 절만 펼쳐 시작한다. 넓은 화면은 전부 펼친다. */
+var NARROW = window.matchMedia('(max-width:640px)');
+function layoutSections(){
+  var narrow = NARROW.matches;
+  ['s1','s2','s3','s4','s5'].forEach(function(id,i){
+    $('#'+id).open = narrow ? (i === 0) : true;
+  });
+}
+layoutSections();
+if(NARROW.addEventListener) NARROW.addEventListener('change', layoutSections);
+
+/* 절마다 다 채웠는지 표시하고, 좁은 화면에서는 다음 절을 자동으로 펼친다 */
+var SEC_NEED = {
+  s1: function(){ return val('coName') && val('coPer') && val('coTel'); },
+  s2: function(){ return val('site') && val('d1'); },
+  /* 칸이 있는 것만으로는 안 되고, 실제로 뭔가 적혀 있어야 한다 */
+  s3: function(){
+    return $$('#trs .tr').some(function(el){
+      return ['name','cap','volt'].some(function(k){
+        var i = $('[data-k="'+k+'"]', el);
+        return i && i.value.trim();
+      });
+    });
+  },
+  s4: function(){ return collect().items.length > 0 || val('etcItem'); }
+};
+var advanced = {};
+function markSections(){
+  Object.keys(SEC_NEED).forEach(function(id){
+    var el = $('#'+id), done = !!SEC_NEED[id]();
+    var sum = $('summary', el), chip = $('.ok', sum);
+    if(done && !chip){
+      chip = document.createElement('span');
+      chip.className = 'ok';
+      chip.textContent = '✓ 입력됨';
+      var note = $('.note', sum);
+      if(note) sum.insertBefore(chip, note); else sum.appendChild(chip);
+    } else if(!done && chip){ chip.remove(); }
+
+    /* 한 절을 다 채우면 다음 절을 한 번 열어준다 (되돌려 접어도 다시 열지 않음) */
+    if(done && NARROW.matches && !advanced[id]){
+      advanced[id] = true;
+      var order = ['s1','s2','s3','s4','s5'];
+      var next = order[order.indexOf(id) + 1];
+      if(next) $('#'+next).open = true;
+    }
+  });
+}
+
+
+/* ── 밝기 단추 ────────────────────────────────────────────────
+   고른 값은 홈페이지와 같은 열쇠에 적는다. 직접 고른 적이 없으면
+   기기 설정이 바뀌는 것을 그대로 따라간다. */
+(function(){
+  var KEY = 'mrt-theme', root = document.documentElement, btn = $('#themetoggle');
+  var mq = window.matchMedia ? matchMedia('(prefers-color-scheme:dark)') : null;
+  function stored(){ try{ var s = localStorage.getItem(KEY); return (s==='light'||s==='dark') ? s : null; }catch(e){ return null; } }
+  function apply(mode){
+    root.setAttribute('data-theme', mode);
+    var dark = mode === 'dark';
+    var mt = document.querySelector('meta[name="theme-color"]');
+    if(mt) mt.content = dark ? '#14161a' : '#eff0f2';
+    if(btn){
+      btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+      var lab = dark ? '밝은 화면으로 전환' : '어두운 화면으로 전환';
+      btn.setAttribute('aria-label', lab); btn.setAttribute('title', lab);
+    }
+  }
+  apply(root.getAttribute('data-theme') || 'light');
+  if(btn) btn.addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try{ localStorage.setItem(KEY, next); }catch(e){}
+    apply(next);
+  });
+  if(mq){
+    var onSys = function(e){ if(!stored()) apply(e.matches ? 'dark' : 'light'); };
+    if(mq.addEventListener) mq.addEventListener('change', onSys);
+    else if(mq.addListener) mq.addListener(onSys);
+  }
+})();
+
+$('#bMinus').onclick = function(){ bumpBudget(-BUD_STEP); };
+$('#bPlus').onclick  = function(){ bumpBudget( BUD_STEP); };
+
+$('#trs').appendChild(trRow());
+renumber();
+/* 오늘 날짜. 예전 식은 UTC 를 읽어서, 한국(UTC+9)에서는 자정부터 아침 9시까지
+   어제 날짜가 찍혔다. 요청서를 쓰는 시간대가 대개 아침이라 그대로 두면 안 된다.
+   기기의 달력 날짜를 그대로 읽는다. */
+function today(){
+  var t = new Date(), p = function(n){ return String(n).padStart(2,'0'); };
+  return t.getFullYear() + '-' + p(t.getMonth() + 1) + '-' + p(t.getDate());
+}
+$('#reqDate').value = today();
+drawBudget();
+drawCalc();
+markSections();
+
+var m = /[#&]q=([^&]+)/.exec(location.hash);
+if(m){
+  try{ restore(unpack(m[1])); flash('보내주신 요청 내용을 불러왔습니다.'); }
+  catch(e){ flash('링크를 읽지 못했습니다. 새로 작성해 주세요.', true); }
+}
+})();
+</script>
+
+</body>
+</html>
