@@ -202,7 +202,7 @@ label .per{
   border:1px solid var(--cu-line); color:var(--cu-ink); font-size:9px;
 }
 
-/* 예산 토글 — 필수 칸. 비어서 시작해 첫 [+] 에 300만원, 이후 50만원씩 */
+/* 예산 토글 — 필수 칸. 비어서 시작해 첫 [+] 에 350만원, 이후 50만원씩 */
 .stepper{display:flex; align-items:stretch; border:1px solid var(--line); border-radius:2px; overflow:hidden; max-width:340px}
 .stepper.bad{border-color:var(--bad); background:color-mix(in srgb,var(--bad) 8%,var(--field))}
 .stepper button{
@@ -426,10 +426,10 @@ label .per{
         <label>생각하신 예산 <span class="req">*</span> <span class="per">변압기 1대당</span></label>
         <div class="stepper">
           <button type="button" id="bMinus" aria-label="예산 50만원 내리기">−</button>
-          <output id="budgetOut" for="bMinus bPlus" class="none">＋ 를 눌러 300만원부터</output>
+          <output id="budgetOut" for="bMinus bPlus" class="none">＋ 를 눌러 350만원부터</output>
           <button type="button" id="bPlus" aria-label="예산 50만원 올리기">+</button>
         </div>
-        <p class="hint" id="budgetHint">＋ 를 누르면 300만원에서 시작해 50만원씩 오릅니다. 예산에 맞춰 시험 항목을 조정해 다시 잡아드릴 수 있습니다.</p>
+        <p class="hint" id="budgetHint">＋ 를 누르면 350만원에서 시작해 50만원씩 오릅니다. 예산에 맞춰 시험 항목을 조정해 다시 잡아드릴 수 있습니다.</p>
       </div>
     </div>
   </div>
@@ -669,7 +669,7 @@ var SENT = false;   // [보내기] 를 한 번이라도 누르면 true → 금�
 
 /* ── 예산 토글 (변압기 1대당, 만원 단위) ─────────────────── */
 var BUD_STEP = 50, BUD_MAX = 5000;
-var BUD_START = 300;                  // 첫 [+] 를 눌렀을 때 앉는 값 (만원)
+var BUD_START = 350;                  // 첫 [+] 를 눌렀을 때 앉는 값 (만원)
 var BUDGET = 0;                       // 0 = 아직 안 고름. 필수라 이대로는 못 보낸다.
 var BUD_MISS = false;                 // [보내기] 를 눌렀는데 비어 있었다
 
@@ -705,8 +705,8 @@ function drawBudget(){
   }
   $('#budgetHint').textContent = hint;
 }
-/* 비어 있을 때 [+] 는 50이 아니라 300 에 앉고,
-   300 에서 [−] 는 250 이 아니라 «처음(비어 있음)» 으로 돌아간다. */
+/* 비어 있을 때 [+] 는 50이 아니라 350 에 앉고,
+   350 에서 [−] 는 300 이 아니라 «처음(비어 있음)» 으로 돌아간다. */
 function bumpBudget(step){
   BUD_MISS = false;               // 손을 대는 순간 경고는 내린다
   if(BUDGET === 0){
