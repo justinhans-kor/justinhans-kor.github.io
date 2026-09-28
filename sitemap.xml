@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 검색에 «올리고 싶은» 쪽만 적는다. 기록판 성적서는 넣지 않는다. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://mrpower.kr/</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://mrpower.kr/%EA%B2%AC%EC%A0%81%EC%9A%94%EC%B2%AD%EC%84%9C.html</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://mrpower.kr/find/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mrpower.kr/cal/</loc>
+    <priority>0.5</priority>
+  </url>
+</urlset>
