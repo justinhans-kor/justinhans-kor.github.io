@@ -207,6 +207,11 @@
   :root[data-theme="dark"] .tgl .moon{display:none;}
   .navlinks a{text-decoration:none;color:var(--ink-2);padding:4px 0;border-bottom:1px solid transparent;}
   .navlinks a:hover{color:var(--ink);border-bottom-color:var(--trace);}
+  /* 다섯 중 「시험 문의」만 «할 일» 이다. 나머지 넷은 읽을거리.
+     굵기와 색을 함께 주어 한눈에 갈라 보이게 한다.
+     이 줄이 :hover 보다 «뒤에» 있어야 손을 올려도 색이 안 풀린다
+     (밑줄은 위 규칙이 그대로 그어 준다). */
+  .navlinks a[href="#contact"]{font-weight:700;color:var(--trace);}
   @media (max-width:760px){
     /* 휴대폰에서도 메뉴를 감추지 않는다. 감추면 절로 건너뛸 길이 없어
        고객이 문의까지 내려가다 지친다. 머리글이 두 줄이 되고,
