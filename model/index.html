@@ -373,6 +373,8 @@
     font-weight:var(--hw);line-height:1.08;}
   .mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-bottom:34px;}
   @media (max-width:640px){.mgrid{grid-template-columns:1fr;}}
+  /* 한 장짜리 대표 그림 — 한 칸을 통째로 쓴다 */
+  .mgrid.lead{grid-template-columns:1fr;margin-bottom:22px;}
   .mgrid figure{margin:0;border:1px solid var(--rule);background:var(--paper-2);}
   .mgrid figure img{display:block;width:100%;height:auto;}
   .mgrid figcaption{padding:9px 12px;font-size:12.5px;color:var(--ink-3);
@@ -460,22 +462,31 @@
 
 <section class="wrap">
   <div class="shead"><h2>1:30 — 전시 · 소장용</h2>
-    <p class="mono">부싱 셰드와 라디에이터 핀까지 살린 판</p></div>
+    <p class="mono">한쪽 면을 잘라 속을 들여다보게 만든 판</p></div>
+
+  <div class="mgrid lead">
+    <figure>
+      <img src="30-1.webp" width="1100" height="825" loading="lazy" decoding="async"
+           alt="1:30 축소 변압기 모형 — 탱크 한쪽 면을 잘라 3상 권선과 철심이 보이는 모습">
+      <figcaption>탱크 한쪽을 잘라 권선과 철심을 보이게 했습니다</figcaption>
+    </figure>
+  </div>
 
   <div class="mgrid">
     <figure>
-      <img src="30-1.webp" width="1100" height="825" loading="lazy" decoding="async"
-           alt="1:30 축소 변압기 모형 전경">
-      <figcaption>전경</figcaption>
+      <img src="30-2.webp" width="1100" height="825" loading="lazy" decoding="async"
+           alt="1:30 모형 전경 — 받침과 사양 명판">
+      <figcaption>받침의 사양 명판</figcaption>
     </figure>
     <figure>
-      <img src="30-2.webp" width="1100" height="825" loading="lazy" decoding="async"
-           alt="1:30 모형의 부싱 셰드 상세">
-      <figcaption>부싱 셰드 상세</figcaption>
+      <img src="30-3.webp" width="1100" height="825" loading="lazy" decoding="async"
+           alt="1:30 모형 뒷면 — 라디에이터와 냉각 팬">
+      <figcaption>라디에이터와 냉각 팬</figcaption>
     </figure>
   </div>
 
   <p class="lede" style="margin-top:0">축척이 커지는 만큼 셰드 간격과 핀 피치가 살아납니다.
+     받침에 설비 사양을 적은 명판을 넣었습니다.
      사무실 · 전시장에 두는 용도로 만듭니다.</p>
 </section>
 
@@ -487,7 +498,8 @@
       <tr><th>용도</th><td>시험 설명 · 교육</td><td>전시 · 소장</td></tr>
       <tr><th>전체 크기</th><td class="mono">약 150 × 100 × 140 mm</td>
                             <td class="mono">약 250 × 165 × 235 mm</td></tr>
-      <tr><th>형상</th><td>부싱 · 라디에이터 · 탱크</td><td>좌동 · 셰드와 핀 상세</td></tr>
+      <tr><th>형상</th><td>부싱 · 라디에이터 · 탱크</td>
+                        <td>좌동 · 단면 절개 · 받침 명판</td></tr>
     </tbody>
   </table>
   <!-- 재질 · 무게 · 납기 줄은 확정되면 여기에 한 줄씩 더한다.
