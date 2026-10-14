@@ -323,6 +323,22 @@
   .out h3{margin:0 0 8px;font-size:16px;letter-spacing:-.02em;}
   .out p{margin:0;font-size:13.5px;color:var(--ink-2);}
 
+  /* 시험 설명용 교보재 — 보유 장비 끝에 붙는 맛보기.
+     메인 메뉴에는 올리지 않는다. 자세한 것은 /model/ 이 받는다. */
+  .peek{display:grid;grid-template-columns:minmax(0,34%) minmax(0,1fr);gap:28px;
+    align-items:center;margin-top:46px;padding-top:34px;border-top:1px solid var(--rule);}
+  @media (max-width:700px){.peek{grid-template-columns:1fr;gap:20px;}}
+  .peek figure{margin:0;border:1px solid var(--rule);background:var(--paper-2);}
+  .peek figure img{display:block;width:100%;height:auto;}
+  /* .peektxt p 가 요소 선택자를 끼고 있어 .eyebrow 만으로는 덮인다 — 두 클래스로 받는다 */
+  .peektxt .eyebrow{margin:0;font-size:12.5px;letter-spacing:.02em;color:var(--ink-3);}
+  .peektxt h3{margin:6px 0 10px;font-size:19px;letter-spacing:-.02em;}
+  .peektxt p{margin:0;font-size:14px;color:var(--ink-2);max-width:54ch;text-wrap:pretty;}
+  .peeklink{display:inline-block;margin-top:16px;font-size:13.5px;color:var(--trace);
+    text-decoration:none;border-bottom:1px solid transparent;}
+  .peeklink:hover{border-bottom-color:var(--trace);}
+  .peeklink:focus-visible{outline:2px solid var(--trace);outline-offset:3px;}
+
   /* 장비 */
   .rigs{width:100%;border-collapse:collapse;}
   .rigs th,.rigs td{text-align:left;padding:14px 12px;border-bottom:1px solid var(--rule);font-size:14px;}
@@ -449,6 +465,22 @@
       <tr><td>IR5050</td><td>HIOKI</td><td>절연저항</td></tr>
     </tbody>
   </table>
+
+  <!-- 교보재 맛보기. 사진은 model/ 폴더에 함께 올린다. -->
+  <div class="peek">
+    <figure>
+      <img src="model/peek.webp" width="880" height="660" loading="lazy" decoding="async"
+           alt="1:50 축소 변압기 모형 — 부싱과 라디에이터가 보이는 전경">
+    </figure>
+    <div class="peektxt">
+      <p class="eyebrow">시험 설명용 교보재</p>
+      <h3>1:50 축소 변압기 모형</h3>
+      <p>부싱 · 권선 · 라디에이터 구조를 축소해 만든 모형입니다.
+         절연역률 C1 · C2 의 측정 위치와 SFRA 결선을 현장에서 직접 짚어가며
+         설명하는 데 씁니다.</p>
+      <a class="peeklink" href="/model/">모형 자세히 보기 →</a>
+    </div>
+  </div>
 </section>
 
 <section id="contact" class="wrap">

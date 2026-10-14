@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>축소 변압기 모형 — 미래전력연구소</title>
+<meta name="description" content="시험 범위를 설명하기 위해 만든 축소 변압기 모형. 부싱 절연역률 C1·C2 측정 위치와 SFRA 결선을 손으로 짚어 보여줍니다. 교육·전시용 제작 문의.">
+<link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+<script>
+(function(){try{
+  var s=localStorage.getItem("mrt-theme");
+  var d=(s==="light"||s==="dark")?s
+        :(window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
+  document.documentElement.setAttribute("data-theme",d);
+}catch(e){}})();
+</script>
+<style>
+  /* ══ 테마 토큰 ══
+     라이트가 기준값. 다크는 아래 두 블록에서만 덮어쓴다.
+     본문 규칙은 반드시 var()만 참조할 것 — 고정 헥사를 다시 넣으면
+     한쪽 테마만 어긋난다. */
+  :root{
+    color-scheme:light;
+    --paper:#EDF0EE;      /* 계기 외함 도장 같은 차가운 밝은 회록 */
+    --paper-2:#E3E8E5;
+    --ink:#14201E;        /* 거의 검은 녹 */
+    --ink-2:#3D544D;
+    --ink-3:#6C837B;
+    --rule:#C6D0CB;
+    --trace:#0F6E56;      /* 기준 트레이스 */
+    --trace-2:#B4761B;    /* 대상 트레이스 · 주의 */
+    --mint:#7FD8C0;
+
+    /* 면 · 선 */
+    --header-bg:rgba(237,240,238,.92);
+    --surface:#EDF0EE;       /* 종목 카드 바탕 */
+    --surface-2:#E3E8E5;     /* 카드 hover */
+    --panel:#E3E8E5;         /* 펼친 패널 바탕 */
+    --grid:#C6D0CB;          /* 종목 격자선 */
+    --hair:#C6D0CB;          /* 패널 안쪽 실선 */
+    --muted:#6C837B;
+    --panel-muted:#6C837B;
+    --thead-rule:#14201E;
+    --out-rule:#14201E;
+
+    /* 강조 버튼 · CTA */
+    --accent-bg:#14201E;
+    --accent-bg-hover:#0F6E56;
+    --accent-fg:#EDF0EE;
+
+    /* 판정 배지 */
+    --vd-bg:rgba(15,110,86,.13);
+    --vd-check-bg:rgba(180,118,27,.15);
+    --vd-ref-bg:rgba(61,84,77,.12);
+
+    /* 로고 */
+    --logo-bg:#14201E;
+    --logo-trace:#7FD8C0;
+    --logo-outline:transparent;
+
+    /* 글자 굵기 · 자간 */
+    --hw:700;
+    --h1-ls:-.035em;
+    --h2-ls:-.03em;
+    --h3-ls:-.02em;
+    --h3-w:700;
+
+    /* 캔버스 대역 음영 */
+    --band-a1:.022;
+    --band-a2:.042;
+  }
+  /* JS 가 꺼져 있어도 OS 설정을 따르도록 */
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0E1519;      /* 계측기 화면 바탕 */
+    --paper-2:#141E23;
+    --ink:#E6EFEC;
+    --ink-2:#A9BDB6;
+    --ink-3:#75908A;
+    --rule:#24333A;
+    --trace:#5FD0AE;
+    --trace-2:#E8A33D;
+    --mint:#7FD8C0;
+
+    --header-bg:rgba(14,21,25,.92);
+    --surface:#182429;
+    --surface-2:#1E2C33;
+    --panel:#101A1F;
+    --grid:#354951;
+    --hair:#2C3D45;
+    --muted:#87A29B;
+    --panel-muted:#93AEA6;
+    --thead-rule:#75908A;
+    --out-rule:#5FD0AE;
+
+    --accent-bg:#5FD0AE;
+    --accent-bg-hover:#7FE0C0;
+    --accent-fg:#0B1416;
+
+    --vd-bg:rgba(95,208,174,.14);
+    --vd-check-bg:rgba(232,163,61,.16);
+    --vd-ref-bg:rgba(169,189,182,.12);
+
+    --logo-bg:#0B1416;
+    --logo-trace:#5FD0AE;
+    --logo-outline:#24333A;
+
+    --hw:600;                /* 밝은 글자는 두꺼워 보여 한 단계 낮춤 */
+    --h1-ls:-.03em;
+    --h2-ls:-.025em;
+    --h3-ls:-.015em;
+    --h3-w:600;
+
+    --band-a1:.030;          /* 캔버스 대역 음영 */
+    --band-a2:.055;
+    }
+  }
+  /* 방문자가 직접 고른 값이 항상 이긴다 */
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#0E1519;      /* 계측기 화면 바탕 */
+    --paper-2:#141E23;
+    --ink:#E6EFEC;
+    --ink-2:#A9BDB6;
+    --ink-3:#75908A;
+    --rule:#24333A;
+    --trace:#5FD0AE;
+    --trace-2:#E8A33D;
+    --mint:#7FD8C0;
+
+    --header-bg:rgba(14,21,25,.92);
+    --surface:#182429;
+    --surface-2:#1E2C33;
+    --panel:#101A1F;
+    --grid:#354951;
+    --hair:#2C3D45;
+    --muted:#87A29B;
+    --panel-muted:#93AEA6;
+    --thead-rule:#75908A;
+    --out-rule:#5FD0AE;
+
+    --accent-bg:#5FD0AE;
+    --accent-bg-hover:#7FE0C0;
+    --accent-fg:#0B1416;
+
+    --vd-bg:rgba(95,208,174,.14);
+    --vd-check-bg:rgba(232,163,61,.16);
+    --vd-ref-bg:rgba(169,189,182,.12);
+
+    --logo-bg:#0B1416;
+    --logo-trace:#5FD0AE;
+    --logo-outline:#24333A;
+
+    --hw:600;                /* 밝은 글자는 두꺼워 보여 한 단계 낮춤 */
+    --h1-ls:-.03em;
+    --h2-ls:-.025em;
+    --h3-ls:-.015em;
+    --h3-w:600;
+
+    --band-a1:.030;          /* 캔버스 대역 음영 */
+    --band-a2:.055;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+  /* 머리글이 화면에 붙어 있으므로, 메뉴를 눌러 간 절은 그 높이만큼 띄워 세운다.
+     안 그러면 절 제목이 머리글 밑에 깔려 안 보인다. */
+  main[id],section[id]{scroll-margin-top:82px;}
+  @media (max-width:760px){main[id],section[id]{scroll-margin-top:112px;}}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Malgun Gothic","맑은 고딕","Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;
+    font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased;
+    word-break:keep-all;overflow-wrap:break-word;   /* 한글은 어절 단위로만 줄바꿈 — 「드/립니다」 같은 낱말 쪼개짐 방지 */
+  }
+  .mono{font-family:Consolas,"D2Coding","SF Mono",Menlo,monospace;}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 28px;}
+  a{color:inherit;}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--trace);outline-offset:3px;}
+
+  /* ── 머리 ── */
+  header{position:sticky;top:0;z-index:20;background:var(--header-bg);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--rule);}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:66px;gap:20px;}
+  .brand{display:flex;align-items:center;gap:11px;text-decoration:none;}
+  .brand svg{width:34px;height:34px;display:block;
+    outline:1px solid var(--logo-outline);outline-offset:0;}
+  .brand svg .lb{fill:var(--logo-bg);}
+  .brand svg .lt{stroke:var(--logo-trace);}
+  .brand b{font-size:17px;font-weight:700;letter-spacing:-.4px;}
+  .navright{display:flex;align-items:center;gap:22px;}
+  .navlinks{display:flex;gap:26px;font-size:13.5px;}
+  /* 테마 토글 — 누르면 바뀌는 쪽 아이콘을 보여준다 */
+  .tgl{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
+    width:34px;height:34px;cursor:pointer;border:1px solid var(--rule);color:var(--ink-2);}
+  .tgl:hover{border-color:var(--trace);color:var(--trace);}
+  .tgl:focus-visible{outline:2px solid var(--trace);outline-offset:3px;}
+  .tgl svg{width:17px;height:17px;display:block;}
+  .tgl .sun{display:none;}
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]) .tgl .sun{display:block;}
+    :root:not([data-theme="light"]) .tgl .moon{display:none;}
+  }
+  :root[data-theme="dark"] .tgl .sun{display:block;}
+  :root[data-theme="dark"] .tgl .moon{display:none;}
+  .navlinks a{text-decoration:none;color:var(--ink-2);padding:4px 0;border-bottom:1px solid transparent;}
+  .navlinks a:hover{color:var(--ink);border-bottom-color:var(--trace);}
+  /* 다섯 중 「시험 문의」만 «할 일» 이다. 나머지 넷은 읽을거리.
+     굵기와 색을 함께 주어 한눈에 갈라 보이게 한다.
+     이 줄이 :hover 보다 «뒤에» 있어야 손을 올려도 색이 안 풀린다
+     (밑줄은 위 규칙이 그대로 그어 준다). */
+  .navlinks a[href$="#contact"]{font-weight:700;color:var(--trace);}
+  @media (max-width:760px){
+    /* 휴대폰에서도 메뉴를 감추지 않는다. 감추면 절로 건너뛸 길이 없어
+       고객이 문의까지 내려가다 지친다. 머리글이 두 줄이 되고,
+       메뉴는 아랫줄을 가득 쓴다. 햄버거를 쓰지 않는 것은 —
+       항목이 다섯이라 한 줄에 들어가고, 한 번 더 누르게 할 이유가 없어서다. */
+    .nav{flex-wrap:wrap;height:auto;gap:0 14px;}
+    /* 메뉴는 .navright 안에 들어 있어 그대로는 아랫줄로 못 내려간다.
+       display:contents 로 껍데기를 지워 메뉴와 밝기 단추를 .nav 의 직접 자식으로 만든다.
+       그래야 윗줄에 회사 이름과 밝기 단추, 아랫줄에 메뉴가 놓인다. */
+    .navright{display:contents;}
+    .brand{padding:11px 0 5px;}
+    .brand svg{width:28px;height:28px;}
+    .brand b{font-size:15.5px;}
+    .tgl{order:2;}
+    .navlinks{
+      order:3;width:100%;gap:0;justify-content:space-between;
+      font-size:12.5px;letter-spacing:-.02em;
+      padding-bottom:7px;
+      overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    }
+    .navlinks::-webkit-scrollbar{display:none;}
+    .navlinks a{white-space:nowrap;padding:5px 0;}
+    .cmpbar{font-size:11px;}
+    .eyebrow .lat{display:none;}
+    }
+
+  /* ── 히어로 ── */
+  .hero.wrap{padding:76px 28px 0;position:relative;overflow:hidden;}
+  .eyebrow{font-size:12.5px;letter-spacing:.02em;color:var(--ink-3);}
+  .eyebrow .lat{letter-spacing:.28em;text-transform:uppercase;}
+  h1{margin:20px 0 0;font-size:clamp(34px,5.4vw,60px);line-height:1.16;
+    letter-spacing:var(--h1-ls);font-weight:var(--hw);}
+  h1 em{font-style:normal;color:var(--trace);}
+  .lede{margin:22px 0 0;max-width:47ch;font-size:clamp(16px,1.6vw,18.5px);color:var(--ink-2);text-wrap:pretty;}
+  .heroplot{margin:52px 0 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:20px 0 16px;position:relative;}
+  .heroplot canvas{width:100%;height:auto;display:block;}
+  @keyframes draw{to{stroke-dashoffset:0;}}
+
+  /* ── 구획 ── */
+  section.wrap{padding:88px 28px;border-bottom:1px solid var(--rule);}
+  .shead{display:flex;align-items:baseline;gap:18px;margin-bottom:38px;flex-wrap:wrap;}
+  .shead h2{margin:0;font-size:clamp(24px,3vw,32px);letter-spacing:var(--h2-ls);font-weight:var(--hw);}
+  .shead p{margin:0;color:var(--ink-3);font-size:13px;letter-spacing:.01em;}
+
+  /* 시험 종목 */
+  .items{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--grid);
+    border:1px solid var(--grid);}
+  .item{background:var(--surface);display:flex;flex-direction:column;}
+  .item>button{all:unset;display:block;cursor:pointer;padding:24px 22px 20px;box-sizing:border-box;}
+  .item>button:focus-visible{outline:2px solid var(--trace);outline-offset:-3px;}
+  .item>button:hover{background:var(--surface-2);}
+  .item .tick{float:right;font-size:11px;color:var(--muted);letter-spacing:.08em;}
+  .item[data-open="1"] .tick{color:var(--trace);}
+  .panel{border-top:1px solid var(--grid);padding:16px 22px 20px;background:var(--panel);}
+  .panel .pv{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;
+    font-family:Consolas,"D2Coding",monospace;padding:4px 0;}
+  .panel .pv b{font-weight:400;color:var(--panel-muted);}
+  .panel .hl{font-size:15px;font-weight:700;margin:0 0 10px;}
+  .panel .vd{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;margin-left:8px;
+    background:var(--vd-bg);color:var(--trace);vertical-align:2px;}
+  .panel .vd.check{background:var(--vd-check-bg);color:var(--trace-2);}
+  .panel .vd.ref{background:var(--vd-ref-bg);color:var(--ink-2);}
+  .panel .cr{margin:12px 0 0;padding-top:10px;border-top:1px solid var(--hair);
+    font-size:11.5px;color:var(--muted);line-height:1.65;}
+  .item h3{margin:0;font-size:17.5px;letter-spacing:var(--h3-ls);font-weight:var(--h3-w);}
+  .item .en{margin:3px 0 12px;font-size:11px;color:var(--muted);letter-spacing:.2em;}
+  .item p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.7;}
+  .item .std{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair);
+    font-size:11.5px;color:var(--muted);letter-spacing:.03em;}
+  @media (max-width:900px){.items{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:600px){.items{grid-template-columns:1fr;}}
+
+  /* SFRA 강조 */
+  .split{display:grid;grid-template-columns:1fr 1.08fr;gap:56px;align-items:start;}
+  @media (max-width:900px){.split{grid-template-columns:1fr;gap:34px;}}
+  .split p{color:var(--ink-2);}
+  .bands{border:1px solid var(--rule);align-self:start;}
+  .bands div{display:flex;justify-content:space-between;padding:11px 16px;font-size:13px;
+    border-bottom:1px solid var(--rule);}
+  .bands div:last-child{border-bottom:0;}
+  .bands span:first-child{color:var(--ink-2);}
+  .bands span:last-child{color:var(--ink);}
+  .cmp{background:var(--paper-2);border:1px solid var(--rule);padding:22px;}
+  .cmp.wide{margin-top:40px;}
+  .cmp canvas{width:100%;height:auto;display:block;}
+  .cmpbar{display:flex;align-items:center;gap:12px;margin-top:10px;
+    flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);flex-wrap:wrap;}
+  .cmpbar button{background:none;border:1px solid var(--rule);color:var(--ink-2);
+    padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;}
+  .cmpbar button:hover{border-color:var(--trace);color:var(--trace);}
+  .cmpbar .grow{margin-left:auto;text-align:right;}
+  .segs{display:flex;}
+  .segs button{border-right:0;}
+  .segs button:last-child{border-right:1px solid var(--rule);}
+  .segs button.on{background:var(--accent-bg);border-color:var(--accent-bg);color:var(--accent-fg);}
+  .segs button.on:hover{color:var(--accent-fg);border-color:var(--accent-bg);}
+  .cmp figcaption{margin:14px 0 0;font-size:11.5px;color:var(--ink-3);line-height:1.7;}
+  .note-card{border-left:2px solid var(--trace);padding:2px 0 2px 24px;}
+  .note-card h3{margin:0 0 10px;font-size:16px;letter-spacing:-.02em;}
+  .note-card p{margin:0 0 14px;font-size:14px;}
+  .note-card p:last-child{margin-bottom:0;}
+
+  /* 산출물 */
+  .outs{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
+  @media (max-width:900px){.outs{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:560px){.outs{grid-template-columns:1fr;}}
+  .out{border-top:2px solid var(--out-rule);padding-top:16px;}
+  .out h3{margin:0 0 8px;font-size:16px;letter-spacing:-.02em;}
+  .out p{margin:0;font-size:13.5px;color:var(--ink-2);}
+
+  /* 시험 설명용 교보재 — 보유 장비 끝에 붙는 맛보기.
+     메인 메뉴에는 올리지 않는다. 자세한 것은 /model/ 이 받는다. */
+  .peek{display:grid;grid-template-columns:minmax(0,34%) minmax(0,1fr);gap:28px;
+    align-items:center;margin-top:46px;padding-top:34px;border-top:1px solid var(--rule);}
+  @media (max-width:700px){.peek{grid-template-columns:1fr;gap:20px;}}
+  .peek figure{margin:0;border:1px solid var(--rule);background:var(--paper-2);}
+  .peek figure img{display:block;width:100%;height:auto;}
+  /* .peektxt p 가 요소 선택자를 끼고 있어 .eyebrow 만으로는 덮인다 — 두 클래스로 받는다 */
+  .peektxt .eyebrow{margin:0;font-size:12.5px;letter-spacing:.02em;color:var(--ink-3);}
+  .peektxt h3{margin:6px 0 10px;font-size:19px;letter-spacing:-.02em;}
+  .peektxt p{margin:0;font-size:14px;color:var(--ink-2);max-width:54ch;text-wrap:pretty;}
+  .peeklink{display:inline-block;margin-top:16px;font-size:13.5px;color:var(--trace);
+    text-decoration:none;border-bottom:1px solid transparent;}
+  .peeklink:hover{border-bottom-color:var(--trace);}
+  .peeklink:focus-visible{outline:2px solid var(--trace);outline-offset:3px;}
+
+  /* 장비 */
+  .rigs{width:100%;border-collapse:collapse;}
+  .rigs th,.rigs td{text-align:left;padding:14px 12px;border-bottom:1px solid var(--rule);font-size:14px;}
+  .rigs th{font-size:11px;letter-spacing:.2em;color:var(--ink-3);font-weight:400;
+    border-bottom:1px solid var(--thead-rule);text-transform:uppercase;}
+  .rigs td:first-child{font-weight:700;}
+  .rigs td:last-child{text-align:right;color:var(--ink-2);}
+  @media (max-width:600px){.rigs th:nth-child(2),.rigs td:nth-child(2){display:none;}}
+
+  /* 문의 */
+  .contact{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;}
+  @media (max-width:900px){.contact{grid-template-columns:1fr;gap:32px;}}
+  .info{border-collapse:collapse;width:100%;}
+  .info th{text-align:left;padding:12px 0;width:34%;font-size:12.5px;color:var(--ink-3);
+    font-weight:400;vertical-align:top;border-bottom:1px solid var(--rule);}
+  .info td{padding:12px 0;font-size:14.5px;border-bottom:1px solid var(--rule);}
+  .todo{color:var(--trace-2);}
+  .cta{display:inline-block;margin-top:26px;padding:14px 26px;
+    background:var(--accent-bg);color:var(--accent-fg);
+    text-decoration:none;font-size:14.5px;letter-spacing:.02em;}
+  .cta:hover{background:var(--accent-bg-hover);}
+
+  footer.wrap{padding:38px 28px 56px;font-size:12.5px;color:var(--ink-3);
+    display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  section.wrap:last-of-type{border-bottom:0;}
+</style>
+
+<style>
+  /* ── /model/ 전용 ── 색·글꼴은 위 토큰을 그대로 쓴다 */
+  .mhero.wrap{padding:76px 28px 0;}
+  .mhero h1{margin:14px 0 0;font-size:clamp(30px,4.6vw,46px);letter-spacing:var(--h1-ls);
+    font-weight:var(--hw);line-height:1.08;}
+  .mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-bottom:34px;}
+  @media (max-width:640px){.mgrid{grid-template-columns:1fr;}}
+  .mgrid figure{margin:0;border:1px solid var(--rule);background:var(--paper-2);}
+  .mgrid figure img{display:block;width:100%;height:auto;}
+  .mgrid figcaption{padding:9px 12px;font-size:12.5px;color:var(--ink-3);
+    border-top:1px solid var(--rule);}
+  .spec{width:100%;border-collapse:collapse;font-size:14px;}
+  .spec th,.spec td{padding:11px 10px;border-bottom:1px solid var(--rule);text-align:left;
+    vertical-align:top;}
+  .spec thead th{font-size:12.5px;color:var(--ink-3);font-weight:600;letter-spacing:.02em;}
+  .spec tbody th{width:28%;font-weight:600;color:var(--ink-2);}
+  .note{margin:26px 0 0;font-size:13px;color:var(--ink-3);max-width:62ch;text-wrap:pretty;}
+  .back{display:inline-block;margin-top:8px;font-size:13.5px;color:var(--ink-3);
+    text-decoration:none;border-bottom:1px solid transparent;}
+  .back:hover{color:var(--trace);border-bottom-color:var(--trace);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="/"><svg viewBox="0 0 92 92" aria-hidden="true" focusable="false"><rect class="lb" width="92" height="92" rx="4"/><line x1="8" y1="76" x2="84" y2="76" stroke="#5E7A72" stroke-width="1.2"/><g class="lt" stroke-width="1" opacity=".5"><line x1="27" y1="72" x2="27" y2="80"/><line x1="46" y1="72" x2="46" y2="80"/><line x1="65" y1="72" x2="65" y2="80"/></g><path d="M8.0 56.9L8.5 56.3L9.0 55.7L9.5 55.1L10.0 54.5L10.5 53.8L11.0 53.0L11.5 52.2L12.0 51.4L12.5 50.5L13.0 49.6L13.5 48.7L14.0 47.7L14.5 46.7L15.0 45.7L15.5 44.7L16.0 43.6L16.4 42.5L16.9 41.4L17.4 40.4L17.9 39.3L18.4 38.2L18.9 37.2L19.4 36.2L19.9 35.2L20.4 34.3L20.9 33.4L21.4 32.5L21.9 31.7L22.4 31.0L22.9 30.4L23.4 29.8L23.9 29.3L24.4 28.9L24.9 28.6L25.4 28.3L25.9 28.2L26.4 28.2L26.9 28.3L27.4 28.4L27.9 28.7L28.4 29.1L28.9 29.5L29.4 30.1L29.9 30.8L30.4 31.5L30.9 32.4L31.4 33.3L31.9 34.3L32.4 35.4L32.9 36.5L33.3 37.8L33.8 39.1L34.3 40.4L34.8 41.8L35.3 43.3L35.8 44.8L36.3 46.3L36.8 47.8L37.3 49.4L37.8 51.0L38.3 52.7L38.8 54.3L39.3 55.9L39.8 57.6L40.3 59.2L40.8 60.8L41.3 62.4L41.8 63.9L42.3 65.5L42.8 66.9L43.3 68.3L43.8 69.7L44.3 71.0L44.8 72.2L45.3 73.3L45.8 74.3L46.3 75.3L46.8 76.1L47.3 76.9L47.8 77.5L48.3 78.0L48.8 78.4L49.3 78.6L49.8 78.8L50.2 78.8L50.7 78.7L51.2 78.4L51.7 78.1L52.2 77.6L52.7 77.0L53.2 76.3L53.7 75.5L54.2 74.6L54.7 73.7L55.2 72.6L55.7 71.5L56.2 70.2L56.7 69.0L57.2 67.7L57.7 66.3L58.2 64.9L58.7 63.5L59.2 62.0L59.7 60.6L60.2 59.1L60.7 57.6L61.2 56.2L61.7 54.7L62.2 53.2L62.7 51.8L63.2 50.4L63.7 49.0L64.2 47.7L64.7 46.4L65.2 45.1L65.7 43.9L66.2 42.7L66.7 41.5L67.1 40.4L67.6 39.4L68.1 38.4L68.6 37.5L69.1 36.7L69.6 35.9L70.1 35.2L70.6 34.5L71.1 34.0L71.6 33.5L72.1 33.1L72.6 32.7L73.1 32.5L73.6 32.3L74.1 32.2L74.6 32.1L75.1 32.2L75.6 32.3L76.1 32.5L76.6 32.8L77.1 33.1L77.6 33.5L78.1 34.0L78.6 34.5L79.1 35.1L79.6 35.8L80.1 36.4L80.6 37.2L81.1 37.9L81.6 38.7L82.1 39.6L82.6 40.4L83.1 41.3L83.6 42.2L84.0 43.1L84.5 44.0L85.0 44.9L85.5 45.7L86.0 46.6L86.5 47.5L87.0 48.3L87.5 49.2L88.0 50.0L88.5 50.8L89.0 51.5L89.5 52.3L90.0 53.0L90.5 53.6L91.0 54.3L91.5 54.9L92.0 55.5" class="lt" fill="none" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/></svg><b>미래전력연구소</b></a>
+    <div class="navright">
+      <nav class="navlinks">
+        <a href="/#tests">시험 종목</a>
+        <a href="/#sfra">SFRA 진단</a>
+        <a href="/#outputs">산출물</a>
+        <a href="/#rigs">보유 장비</a>
+        <a href="/#contact">시험 문의</a>
+      </nav>
+      <button id="themetoggle" class="tgl" type="button" aria-pressed="false"
+              aria-label="어두운 화면으로 전환" title="어두운 화면으로 전환">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z"/>
+        </svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="4.1"/>
+          <path d="M12 2.4v2.4M12 19.2v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.4 12h2.4M19.2 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="wrap mhero">
+  <p class="eyebrow">시험 설명용 교보재</p>
+  <h1>축소 변압기 모형</h1>
+  <p class="lede">시험 범위를 말로 설명하려면 결국 도면을 펴게 됩니다.
+     손에 쥐는 모형이 있으면 「이 부싱의 C1 을 재고, 여기서 SFRA 결선을 땁니다」가
+     한 번에 전달됩니다. 그 용도로 만든 축소 모형입니다.</p>
+  <!-- 출력물 사진으로 바꾸는 날 이 줄을 지운다 -->
+  <p class="note">아래 그림은 3D 모델을 그린 것입니다. 출력물 사진은 준비되는 대로 바꿉니다.</p>
+</section>
+
+<section class="wrap">
+  <div class="shead"><h2>1:50 — 설명용</h2>
+    <p class="mono">상담 자리와 현장에 들고 다니는 크기</p></div>
+
+  <div class="mgrid">
+    <figure>
+      <img src="50-1.webp" width="1100" height="825" loading="lazy" decoding="async"
+           alt="1:50 축소 변압기 모형 전경 — 고압·저압 부싱과 라디에이터">
+      <figcaption>고압 · 저압 부싱과 라디에이터</figcaption>
+    </figure>
+    <figure>
+      <img src="50-2.webp" width="1100" height="825" loading="lazy" decoding="async"
+           alt="1:50 모형을 위에서 본 모습 — 부싱 배치와 측정 위치">
+      <figcaption>위에서 본 부싱 배치</figcaption>
+    </figure>
+  </div>
+
+  <div class="outs">
+    <div class="out"><h3>부싱</h3>
+      <p>절연역률 C1 · C2 의 측정 위치와 탭 단자가 어디인지 손으로 짚어 보여줍니다.</p></div>
+    <div class="out"><h3>SFRA 결선</h3>
+      <p>기준 측정과 같은 결선을 다시 잡아야 하는 이유를, 단자 위치를 보며 설명합니다.</p></div>
+    <div class="out"><h3>권선과 철심</h3>
+      <p>주파수 응답이 왜 구조의 지문이 되는지, 탱크 안의 배치를 보며 이야기합니다.</p></div>
+    <div class="out"><h3>라디에이터</h3>
+      <p>유온과 보정계수를 설명할 때 쓰는 부분입니다.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="shead"><h2>1:30 — 전시 · 소장용</h2>
+    <p class="mono">부싱 셰드와 라디에이터 핀까지 살린 판</p></div>
+
+  <div class="mgrid">
+    <figure>
+      <img src="30-1.webp" width="1100" height="825" loading="lazy" decoding="async"
+           alt="1:30 축소 변압기 모형 전경">
+      <figcaption>전경</figcaption>
+    </figure>
+    <figure>
+      <img src="30-2.webp" width="1100" height="825" loading="lazy" decoding="async"
+           alt="1:30 모형의 부싱 셰드 상세">
+      <figcaption>부싱 셰드 상세</figcaption>
+    </figure>
+  </div>
+
+  <p class="lede" style="margin-top:0">축척이 커지는 만큼 셰드 간격과 핀 피치가 살아납니다.
+     사무실 · 전시장에 두는 용도로 만듭니다.</p>
+</section>
+
+<section class="wrap">
+  <div class="shead"><h2>제원</h2><p class="mono">154kV급 주변압기 기준</p></div>
+  <table class="spec">
+    <thead><tr><th>　</th><th>1:50</th><th>1:30</th></tr></thead>
+    <tbody>
+      <tr><th>용도</th><td>시험 설명 · 교육</td><td>전시 · 소장</td></tr>
+      <tr><th>전체 크기</th><td class="mono">약 150 × 100 × 140 mm</td>
+                            <td class="mono">약 250 × 165 × 235 mm</td></tr>
+      <tr><th>형상</th><td>부싱 · 라디에이터 · 탱크</td><td>좌동 · 셰드와 핀 상세</td></tr>
+    </tbody>
+  </table>
+  <!-- 재질 · 무게 · 납기 줄은 확정되면 여기에 한 줄씩 더한다.
+       확인되지 않은 값을 공개 화면에 올리지 않는다. -->
+  <p class="note">크기는 대상 설비에 따라 달라집니다.
+     <strong>고객사 설비 도면을 그대로 뜬 모형은 만들지 않습니다</strong> —
+     특정 설비가 식별되지 않는 일반 형상으로 제작합니다.</p>
+</section>
+
+<section class="wrap" id="ask">
+  <div class="shead"><h2>제작 문의</h2><p class="mono">교육 · 전시용</p></div>
+  <p class="lede" style="margin-top:0">수량과 용도, 원하시는 축척을 알려주시면
+     제작 가능 여부와 기간을 회신드립니다.</p>
+  <a class="cta" href="mailto:justin.hans@outlook.com?subject=%5B%EB%AA%A8%ED%98%95%20%EC%A0%9C%EC%9E%91%20%EB%AC%B8%EC%9D%98%5D">제작 문의 메일 보내기</a>
+  <table class="spec" style="margin-top:34px;max-width:520px">
+    <tbody>
+      <tr><th>상호</th><td>미래전력연구소</td></tr>
+      <tr><th>전화</th><td class="mono"><a href="tel:01080010119">010-8001-0119</a></td></tr>
+      <tr><th>이메일</th><td class="mono"><a href="mailto:justin.hans@outlook.com">justin.hans@outlook.com</a></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:30px"><a class="back" href="/">← 미래전력연구소 홈으로</a></p>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <span>미래전력연구소 · 사업자등록번호 401-15-83004</span>
+  <span class="mono">MIRAE POWER LAB</span>
+</footer>
+
+
+<script>
+(function(){
+"use strict";
+var HOOKS=(window.THEME_HOOKS=window.THEME_HOOKS||[]);
+var KEY="mrt-theme", root=document.documentElement, btn=document.getElementById("themetoggle");
+var mq=window.matchMedia?matchMedia("(prefers-color-scheme:dark)"):null;
+function stored(){ try{ var s=localStorage.getItem(KEY); return (s==="light"||s==="dark")?s:null; }catch(e){ return null; } }
+function apply(mode,initial){
+  root.setAttribute("data-theme",mode);
+  var dark=mode==="dark";
+  if(btn){
+    btn.setAttribute("aria-pressed",dark?"true":"false");
+    var lab=dark?"밝은 화면으로 전환":"어두운 화면으로 전환";
+    btn.setAttribute("aria-label",lab); btn.setAttribute("title",lab);
+  }
+  /* 첫 호출은 이미 제 색으로 그려진 뒤라 다시 그릴 것이 없다 */
+  if(initial) return;
+  for(var i=0;i<HOOKS.length;i++){ try{ HOOKS[i](); }catch(e){} }
+}
+apply(root.getAttribute("data-theme")||"light", true);
+if(btn) btn.addEventListener("click", function(){
+  var next=root.getAttribute("data-theme")==="dark"?"light":"dark";
+  try{ localStorage.setItem(KEY,next); }catch(e){}
+  apply(next);
+});
+/* 직접 고른 적이 없으면 OS 설정 변화를 그대로 따라간다 */
+if(mq){
+  var onSys=function(e){ if(!stored()) apply(e.matches?"dark":"light"); };
+  if(mq.addEventListener) mq.addEventListener("change",onSys);
+  else if(mq.addListener) mq.addListener(onSys);
+}
+})();
+</script>
+</body>
+</html>
