@@ -328,8 +328,11 @@
   .peek{display:grid;grid-template-columns:minmax(0,34%) minmax(0,1fr);gap:28px;
     align-items:center;margin-top:46px;padding-top:34px;border-top:1px solid var(--rule);}
   @media (max-width:700px){.peek{grid-template-columns:1fr;gap:20px;}}
-  .peek figure{margin:0;border:1px solid var(--rule);background:var(--paper-2);}
+  .peek figure{margin:0;border:1px solid var(--rule);background:var(--paper-2);
+    transition:border-color .15s ease;}
+  .peek figure:hover{border-color:var(--trace);}
   .peek figure img{display:block;width:100%;height:auto;}
+  .peekimg{display:block;}
   /* .peektxt p 가 요소 선택자를 끼고 있어 .eyebrow 만으로는 덮인다 — 두 클래스로 받는다 */
   .peektxt .eyebrow{margin:0;font-size:12.5px;letter-spacing:.02em;color:var(--ink-3);}
   .peektxt h3{margin:6px 0 10px;font-size:19px;letter-spacing:-.02em;}
@@ -469,8 +472,12 @@
   <!-- 교보재 맛보기. 사진은 model/ 폴더에 함께 올린다. -->
   <div class="peek">
     <figure>
-      <img src="model/peek.webp" width="880" height="660" loading="lazy" decoding="async"
-           alt="1:50 축소 변압기 모형 — 부싱과 라디에이터가 보이는 전경">
+      <!-- 사진도 같은 곳으로 간다. 아래 글 링크와 목적지가 같으므로
+           낭독기와 키보드에는 글 링크 하나만 보이게 감춘다 -->
+      <a href="/model/" class="peekimg" tabindex="-1" aria-hidden="true">
+        <img src="model/peek.webp" width="880" height="660" loading="lazy" decoding="async"
+             alt="1:50 축소 변압기 모형 — 부싱과 라디에이터가 보이는 전경">
+      </a>
     </figure>
     <div class="peektxt">
       <p class="eyebrow">시험 설명용 교보재</p>
