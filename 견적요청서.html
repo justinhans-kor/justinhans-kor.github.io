@@ -422,15 +422,6 @@ label .per{
       <div class="f"><label>회신 희망 방법</label>
         <select id="reply"><option>이메일</option><option>전화</option><option>문자 · 카카오톡</option></select>
       </div>
-      <div class="f wide">
-        <label>생각하신 예산 <span class="req">*</span> <span class="per">변압기 1대당</span></label>
-        <div class="stepper">
-          <button type="button" id="bMinus" aria-label="예산 50만원 내리기">−</button>
-          <output id="budgetOut" for="bMinus bPlus" class="none">＋ 를 눌러 400만원부터</output>
-          <button type="button" id="bPlus" aria-label="예산 50만원 올리기">+</button>
-        </div>
-        <p class="hint" id="budgetHint">＋ 를 누르면 400만원에서 시작해 50만원씩 오릅니다. 예산에 맞춰 시험 항목을 조정해 다시 잡아드릴 수 있습니다.</p>
-      </div>
     </div>
   </div>
 </details>
@@ -471,7 +462,7 @@ label .per{
     </p>
     <div class="f wide" style="margin-top:15px">
       <label>그 밖에 필요한 시험</label>
-      <input id="etcItem" placeholder="예) 부싱 C2, 유중가스 분석">
+      <input id="etcItem" placeholder="예) 부싱 C2, BCT 포화특성">
     </div>
   </div>
 </details>
@@ -485,8 +476,23 @@ label .per{
   </div>
 </section>
 
+<details class="sec" id="s5b" open>
+  <summary><span class="n">05</span> 생각하신 예산 <span class="note">필수</span></summary>
+  <div class="pad">
+    <div class="f wide">
+      <label>예산 <span class="req">*</span> <span class="per">변압기 1대당</span></label>
+      <div class="stepper">
+        <button type="button" id="bMinus" aria-label="예산 50만원 내리기">−</button>
+        <output id="budgetOut" for="bMinus bPlus" class="none">＋ 를 눌러 400만원부터</output>
+        <button type="button" id="bPlus" aria-label="예산 50만원 올리기">+</button>
+      </div>
+      <p class="hint" id="budgetHint">위 내용을 기준으로 생각하신 예산을 적어주세요. ＋ 를 누르면 400만원에서 시작해 50만원씩 오릅니다. 예산에 맞춰 시험 항목을 조정해 다시 잡아드릴 수 있습니다.</p>
+    </div>
+  </div>
+</details>
+
 <details class="sec" id="s5">
-  <summary><span class="n">05</span> 참고사항 <span class="note">선택</span></summary>
+  <summary><span class="n">06</span> 참고사항 <span class="note">선택</span></summary>
   <div class="pad">
     <div class="f">
       <label>요청사항 · 현장 여건</label>
@@ -497,10 +503,10 @@ label .per{
 </details>
 
 <section class="sec send">
-  <h2><span class="n">06</span> 보내기 <span class="note">편한 것 하나로</span></h2>
+  <h2><span class="n">07</span> 보내기 <span class="note">편한 것 하나로</span></h2>
   <div class="pad">
     <button class="go" id="bMail" type="button">메일로 보내기 <em>붙여넣기</em></button>
-    <a class="go sms hide" id="bSms">문자로 보내기 <em>바로 전송</em></a>
+    <a class="go sms hide" id="bSms">문자로 보내기 <em>붙여넣기 없이</em></a>
     <a class="go kko hide" id="bKko" target="_blank" rel="noopener">카카오톡으로 보내기 <em>붙여넣기</em></a>
     <button class="go alt" id="bCopy" type="button">내용 복사</button>
     <div class="msg hide" id="msg"></div>
@@ -554,7 +560,7 @@ var RATES = {
   /* 변압기 1대당 시험 소요 (분). 실제 작업 기준. */
   minPerItem: {
     ttr:50,      // 전압비 + 위상각 + 여자전류
-    sc:30,       // 단락전류 = 임피던스
+    sc:30,       // 단락임피던스 (%Z)
     wr:45, ir:30, pf:60,
     bpf:30, bpf2:30,   // 부싱 절연역률 — 개수와 무관한 고정값
     bct:5, knee:10,    // 이 둘은 부싱 CT 개수만큼 곱해집니다
@@ -580,8 +586,8 @@ var GRADE = (function(){
 
 /* 화면에 보이는 차례 그대로입니다. 순서를 바꾸려면 줄을 옮기세요. */
 var ITEMS = [
-  { k:'ttr',  t:'전압비 / 위상각 / 여자전류',    d:'TTR · Phase angle · Excitation' },
-  { k:'sc',   t:'단락전류 (임피던스)',           d:'Short circuit · Impedance' },
+  { k:'ttr',  t:'전압비 / 극성 / 위상각 / 여자전류', d:'TTR · Polarity · Phase angle · Excitation' },
+  { k:'sc',   t:'단락임피던스 (%Z)',             d:'Short circuit impedance' },
   { k:'wr',   t:'권선저항 측정',                d:'Winding resistance' },
   { k:'ir',   t:'절연저항 측정',                d:'Insulation resistance' },
   { k:'pf',   t:'절연역률(Power Factor) 시험',  d:'권선 PF & CAP' },
@@ -589,7 +595,7 @@ var ITEMS = [
   { k:'bpf2', t:'부싱 절연역률 C2',             d:'Bushing PF & CAP — C2', off:true },
   { k:'bct',  t:'BCT 변류비 및 극성 시험',       d:'Ratio · Polarity · IR' },
   /* off:true → 고를 수 없고 «별도 문의» 로만 표시됩니다 */
-  { k:'knee', t:'BCT 포화특성 (Knee point)',    d:'여자특성 곡선', off:true },
+  { k:'knee', t:'BCT 포화특성 (Knee point)',    d:'여자전류 곡선', off:true },
   { k:'sfra', t:'SFRA(주파수응답분석) 시험',     d:'권선 변형 진단' }
 ];
 
@@ -606,11 +612,11 @@ function trRow(){
       '<div class="f"><label>호기 · 설비명</label><input data-k="name" placeholder="#1 주변압기, GT TR"></div>' +
       '<div class="f"><label>대수</label><input data-k="qty" type="number" min="1" step="1" value="1"></div>' +
       '<div class="f"><label>용량</label><input data-k="cap" placeholder="70 MVA, 4000 kVA"></div>' +
-      '<div class="f"><label>전압 1차 / 2차</label><input data-k="volt" placeholder="154 / 22.9 kV"></div>' +
+      '<div class="f"><label>전압 (권선별)</label><input data-k="volt" placeholder="154 / 22.9 kV · 3권선이면 345 / 154 / 22.9"></div>' +
     '</div>' +
     '<div class="grid extra">' +
-      '<div class="f"><label>부싱 CT 수량</label><input data-k="bct" placeholder="6개, 없으면 0"></div>' +
-      '<div class="f"><label>부싱 개수</label><input data-k="bush" placeholder="6개 (C1 대상)"></div>' +
+      '<div class="f"><label>부싱 CT 수량</label><input data-k="bct" placeholder="6 · 없으면 0"></div>' +
+      '<div class="f"><label>부싱 개수 (C1 대상)</label><input data-k="bush" placeholder="6"></div>' +
       '<div class="f"><label>OLTC 부하시 탭절환</label><select data-k="oltc">' +
         '<option>없음</option><option>있음</option><option>모름</option></select></div>' +
       '<div class="f"><label>제조사</label><input data-k="maker" placeholder="LS, 효성"></div>' +
@@ -692,8 +698,10 @@ function drawBudget(){
     hint = '＊ 예산을 정해 주세요. ＋ 를 누르면 ' + BUD_START.toLocaleString('ko-KR') +
            '만원에서 시작해 ' + BUD_STEP + '만원씩 오릅니다.';
   } else if(empty){
-    hint = '＋ 를 누르면 ' + BUD_START.toLocaleString('ko-KR') + '만원에서 시작해 ' +
-           BUD_STEP + '만원씩 오릅니다. 예산에 맞춰 시험 항목을 조정해 다시 잡아드릴 수 있습니다.';
+    /* 이 칸이 산출 요약 «아래» 로 옮겨왔다 — 무엇을 보고 적으라는 것인지 먼저 말한다 */
+    hint = '위 내용을 기준으로 생각하신 예산을 적어주세요. ＋ 를 누르면 ' +
+           BUD_START.toLocaleString('ko-KR') + '만원에서 시작해 ' + BUD_STEP +
+           '만원씩 오릅니다. 예산에 맞춰 시험 항목을 조정해 다시 잡아드릴 수 있습니다.';
   } else {
     var n = 0;
     $$('#trs .tr').forEach(function(el){
@@ -960,7 +968,9 @@ function summary(d){
 function fullText(d){
   return summary(d) +
     '\n\n──────────' +
-    '\n※ 아래 한 줄은 견적 담당자가 내용을 읽어들이는 데 씁니다. 지우지 말고 함께 보내주세요.' +
+    '\n※ 아래 긴 줄은 견적 담당자가 내용을 읽어들이는 데 씁니다.'
+       + '\n   화면에서는 여러 줄로 보일 수 있습니다. 중간이 잘리지 않게 전부 함께 보내주세요.'
+       + '\n   메일 본문을 통째로 복사해 보내시면 가장 확실합니다.' +
     '\nQREQ1:' + pack(d);
 }
 
