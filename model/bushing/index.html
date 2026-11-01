@@ -361,6 +361,14 @@
     text-decoration:none;font-size:14.5px;letter-spacing:.02em;}
   .cta:hover{background:var(--accent-bg-hover);}
 
+  /* 다른 페이지로 넘기는 링크 — .peeklink 보다 한 단 세게 둔다.
+     버튼(.cta)으로 만들면 아래 문의 버튼과 경쟁하므로 «글자 링크» 로 남긴다 */
+  .golink{display:inline-block;font-size:15.5px;font-weight:600;letter-spacing:-.01em;
+    color:var(--trace);text-decoration:none;
+    border-bottom:2px solid var(--trace);padding-bottom:3px;}
+  .golink:hover{color:var(--ink);border-bottom-color:var(--ink);}
+  .golink:focus-visible{outline:2px solid var(--trace);outline-offset:4px;}
+
   footer.wrap{padding:38px 28px 56px;font-size:12.5px;color:var(--ink-3);
     display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;}
   section.wrap:last-of-type{border-bottom:0;}
@@ -502,7 +510,7 @@
      플랜지에 탭 단자가 하나 있습니다. 중심도체와 탭 사이가 C1,
      탭과 플랜지 사이가 C2입니다. 운전 중에는 캡이 탭을 접지해 두므로,
      캡을 풀어야 둘을 나눠 측정할 수 있습니다.</p>
-  <p style="margin-top:22px"><a class="peeklink" href="/model/#top">탭 단자 속을 단면으로 보기 →</a></p>
+  <p style="margin-top:26px"><a class="golink" href="/model/#top">탭 단자 속을 단면으로 보기 →</a></p>
   <p class="note">제작사와 등급에 따라 「시험탭」 또는 「전압탭」이 붙습니다.
      69 kV 이하는 대개 시험탭입니다.
      어느 쪽이든 C1 · C2를 측정하는 방법은 같습니다.
