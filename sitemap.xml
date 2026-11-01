@@ -18,6 +18,10 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://mrpower.kr/model/bushing/</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://mrpower.kr/cal/</loc>
     <priority>0.5</priority>
   </url>
