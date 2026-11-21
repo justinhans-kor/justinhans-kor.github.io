@@ -326,7 +326,17 @@ label .per{
 .money.draft{border-style:dashed; border-left-style:solid; border-color:var(--bad)}
 
 /* ── 보내기 ───────────────────────────────────────────────── */
-.send .pad{display:flex; gap:9px; flex-wrap:wrap}
+/* 보내기는 «권하는 길 하나» 를 크게 두고 나머지를 아래에 작게 놓는다.
+   넷을 나란히 두면 무엇이 확실한지 알 수 없어 고객이 거기서 멈춘다. */
+.send .pad{display:block}
+.send .go{width:100%}
+.s2{
+  margin:18px 0 9px; padding-top:15px; border-top:1px solid var(--line);
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted);
+}
+.s2row{display:flex; gap:9px; flex-wrap:wrap}
+.s2row .go{flex:1 1 168px; width:auto; font-size:13.5px; padding:11px 13px}
 .go{
   flex:1 1 188px; border:1px solid var(--cu); border-radius:2px; cursor:pointer;
   font-family:inherit; font-size:14.5px; font-weight:600; padding:13px 16px;
@@ -348,6 +358,16 @@ label .per{
   background:var(--panel); border:1px solid var(--ok); border-left-width:3px; color:var(--ink);
 }
 .msg.err{border-color:var(--bad)}
+/* 아직 안 보내졌다는 안내 — 잘못이 아니라 «할 일이 남았다» 는 뜻이라 구리색으로 */
+.msg.todo{border-color:var(--cu)}
+.msg .warn{
+  display:block; color:var(--cu-ink); font-weight:700; font-size:13.5px;
+  margin:0 0 8px; padding-bottom:8px; border-bottom:1px solid var(--line);
+}
+.msg .cond2{
+  display:block; margin-top:10px; padding-top:9px; border-top:1px solid var(--line);
+  font-size:12px; color:var(--muted); line-height:1.6;
+}
 .msg.hide{display:none}
 .msg a{color:var(--cu-ink); text-underline-offset:3px}
 .msg a:hover{text-decoration-thickness:2px}
@@ -503,12 +523,15 @@ label .per{
 </details>
 
 <section class="sec send">
-  <h2><span class="n">07</span> 보내기 <span class="note">편한 것 하나로</span></h2>
+  <h2><span class="n">07</span> 보내기 <span class="note">메일을 권합니다</span></h2>
   <div class="pad">
-    <button class="go" id="bMail" type="button">메일로 보내기 <em>붙여넣기</em></button>
-    <a class="go sms hide" id="bSms">문자로 보내기 <em>붙여넣기 없이</em></a>
-    <a class="go kko hide" id="bKko" target="_blank" rel="noopener">카카오톡으로 보내기 <em>붙여넣기</em></a>
-    <button class="go alt" id="bCopy" type="button">내용 복사</button>
+    <button class="go" id="bMail" type="button">① 내용 복사 → ② 메일로 보내기 <em>붙여넣고 전송</em></button>
+    <p class="s2">다른 방법으로 보내시려면</p>
+    <div class="s2row">
+      <button class="go alt" id="bCopy" type="button">내용만 복사</button>
+      <a class="go kko hide" id="bKko" target="_blank" rel="noopener">카카오톡 열기 <em>붙여넣고 전송</em></a>
+      <a class="go sms hide" id="bSms">문자 열기 <em id="smsWhy">본문까지 채워져 열립니다</em></a>
+    </div>
     <div class="msg hide" id="msg"></div>
     <textarea id="out" class="hide" readonly></textarea>
   </div>
@@ -671,8 +694,6 @@ $$('#items .item').forEach(function(el){
   });
 });
 
-var SENT = false;   // [보내기] 를 한 번이라도 누르면 true → 금액이 열린다
-
 /* ── 예산 토글 (변압기 1대당, 만원 단위) ─────────────────── */
 var BUD_STEP = 50, BUD_MAX = 5000;
 var BUD_START = 350;                  // 첫 [+] 를 눌렀을 때 앉는 값 (만원)
@@ -786,20 +807,13 @@ function drawCalc(){
     return '<div><dt>' + c[0] + '</dt><dd>' + c[1] + '<u>' + c[2] + '</u></dd></div>';
   }).join('');
 
-  /* 요청을 보낸 뒤에만 뜨는 접수 안내.
-     금액은 여기 띄우지 않는다 — 정식 견적서로만 알린다. */
+  /* 보낸 뒤 안내는 여기 띄우지 않는다.
+     이 칸은 화면 «가운데» 인데 보내기 버튼은 맨 아래다. 여기에 띄우면
+     정작 누른 사람 눈에는 안 보인다 — 실제로 그래서 못 봤다.
+     「아직 안 보내졌다」는 버튼 바로 아래 안내 상자(#msg)가 맡는다.
+     금액도 여기 띄우지 않는다 — 정식 견적서로만 알린다. */
+  $('#money').classList.add('hide');
   var noItems = e.itemCount === 0;
-  var mEl = $('#money');
-  if(SENT && !noItems){
-    mEl.classList.remove('hide');
-    mEl.innerHTML =
-      '<dt>요청이 접수되었습니다</dt>' +
-      '<dd class="none">검토 후 정식 견적서로 회신드립니다.</dd>' +
-      '<p class="cond">부가세 별도 · 현장 여건(이동거리, 정전조건, 야간작업)에 따라 달라집니다. ' +
-      '적어주신 예산과 차이가 크면 시험 항목을 조정해 다시 잡아드릴 수 있으니 편하게 말씀해 주세요.</p>';
-  } else {
-    mEl.classList.add('hide');
-  }
 
   var note = [];
   if(noItems) note.push('시험 항목을 고르시면 소요시간이 계산됩니다.');
@@ -807,6 +821,7 @@ function drawCalc(){
   if(e.needCt) note.push('BCT 시험은 「부싱 CT 수량」을 적어야 소요시간에 들어갑니다. 지금은 빠져 있습니다.');
   note.push('현장 도착 이후 기준이며, 이동시간은 빠져 있습니다. 실제 일정은 협의 후 확정됩니다.');
   $('#calcNote').textContent = note.join(' ');
+  drawSendLabels();
 }
 
 function val(id){ return ($('#'+id).value || '').trim(); }
@@ -871,13 +886,12 @@ var REQUIRED = [
   ['coName','회사 · 기관명'], ['coPer','요청자 성함'], ['coTel','연락처'],
   ['site','현장명'], ['d1','희망 시험일']
 ];
-/* 보내기가 성공했을 때 금액을 열고 그 자리로 데려간다 */
+/* 보내기를 누른 뒤 — «다음 할 일» 이 적힌 안내로 데려간다.
+   안내는 버튼 바로 아래에 있다. 위쪽 산출 요약으로 끌고 가면
+   정작 읽어야 할 「붙여넣고 전송」이 화면 밖으로 나간다. */
 function markSent(){
-  if(SENT) return;
-  SENT = true;
-  drawCalc();
-  var el = $('#money');
-  if(!el.classList.contains('hide')) el.scrollIntoView({behavior:'smooth', block:'center'});
+  var m = $('#msg');
+  if(m && !m.classList.contains('hide')) m.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 function validate(){
@@ -974,6 +988,32 @@ function fullText(d){
     '\nQREQ1:' + pack(d);
 }
 
+function mailSubject(d){
+  return '[견적요청] ' + d.site.name + ' 변압기 현장시험 — ' + d.co.name;
+}
+/* 메일 본문은 «붙여넣기» 로 간다. 한때 암호줄만 주소에 실어 붙여넣기를 없애 봤는데,
+   그러면 고객 보낸편지함에 암호줄 하나만 남아 «내가 무엇을 보냈는지» 를 볼 수 없다.
+   사내 전달과 품의에도 그 메일을 쓰므로 읽을 수 있는 기록이 남아야 한다.
+   한글은 주소에 실으면 한 글자가 9자로 부풀어(요약 전문이면 9,000자대)
+   둘 다는 안 된다 — 기록 쪽을 택했다. */
+/* 문자(LMS)는 2,000바이트에서 잘린다. 한글은 두 바이트로 센다. */
+var SMS_MAX = 2000;
+function smsBytes(s){
+  var n = 0;
+  for(var i = 0; i < s.length; i++) n += (s.charCodeAt(i) > 127) ? 2 : 1;
+  return n;
+}
+
+/* 문자 버튼에 «누르면 무슨 일이 일어나는지» 를 미리 적어 둔다.
+   길어지면 잘리므로 미리 메일로 돌린다. */
+function drawSendLabels(){
+  var sw = $('#smsWhy'); if(!sw) return;
+  var text;
+  try{ text = fullText(collect()); }catch(e){ return; }
+  sw.textContent = (smsBytes(text) <= SMS_MAX)
+    ? '본문까지 채워져 열립니다' : '내용이 길어 메일을 권합니다';
+}
+
 function pack(d){
   var bytes = new TextEncoder().encode(JSON.stringify(d));
   var s = '';
@@ -987,20 +1027,44 @@ function showMsg(html, isErr, keep){
   m.innerHTML = html;
   m.classList.remove('hide');
   m.classList.toggle('err', !!isErr);
+  m.classList.remove('todo');
   clearTimeout(msgT);
   if(!keep) msgT = setTimeout(function(){ m.classList.add('hide'); }, 8000);
 }
 function flash(text, isErr){ showMsg(esc(text), isErr); }
+/* 보내기 안내는 «아직 안 보내졌다» 로 열고, 받는 조건으로 닫는다.
+   버튼 바로 아래라 누른 사람 눈에 바로 들어온다. */
+function sendMsg(html){
+  showMsg('<b class="warn">아직 보내지지 않았습니다 — 전송까지 누르셔야 접수됩니다</b>' +
+          html +
+          '<span class="cond2">접수되면 검토 후 정식 견적서로 회신드립니다. ' +
+          '부가세 별도 · 현장 여건(이동거리, 정전조건, 야간작업)에 따라 달라집니다. ' +
+          '적어주신 예산과 차이가 크면 시험 항목을 조정해 다시 잡아드릴 수 있으니 ' +
+          '편하게 말씀해 주세요.</span>', false, true);
+  $('#msg').classList.add('todo');
+}
 function showOut(text){
   var o = $('#out');
   o.value = text; o.classList.remove('hide');
   o.focus(); o.select();
+  /* 고르고 나면 칸이 «끝» 으로 내려가 암호줄만 보인다 — 읽을 수 있는 요약이
+     먼저 보이도록 맨 위로 되돌린다. 고른 것은 그대로다. */
+  o.scrollTop = 0;
 }
-/* 안내 문구를 따로 띄우고 싶을 때 쓰는, 조용한 복사 */
-function copyQuiet(text){
+/* 복사를 «그 자리에서» 끝내 둔다.
+   navigator.clipboard 는 약속(Promise)이라, 바로 다음 줄에서 메일·문자 앱으로
+   넘어가면 복사가 끝나기 전에 페이지가 멈추는 일이 있다(아이폰에서 난다).
+   그러면 창은 열렸는데 붙여넣을 것이 없다. execCommand 는 동기라 그 자리에서 끝난다. */
+function copyNow(text){
+  showOut(text);                                   // 칸에 담고 선택해 둔다
+  var ok = false;
+  try{ ok = document.execCommand('copy'); }catch(e){}
   if(navigator.clipboard && window.isSecureContext){
-    navigator.clipboard.writeText(text).then(null, function(){ selectOut(text); });
-  } else selectOut(text);
+    /* 약속이 깨져도 조용히 넘긴다 — 위에서 이미 동기로 복사해 두었다.
+       .then 을 안 달면 «처리되지 않은 거절» 이 콘솔에 쌓인다. */
+    try{ navigator.clipboard.writeText(text).then(null, function(){}); }catch(e){}
+  }
+  return ok;
 }
 function selectOut(text){
   showOut(text);
@@ -1036,12 +1100,23 @@ if(SMS_TO){
     var d = validate();
     if(!d){ ev.preventDefault(); return; }
     var text = fullText(d);
+    /* 길면 문자 앱이 말없이 잘라 보낸다. 잘린 암호줄은 접수함이 못 읽는데
+       고객 화면에는 «보냈다» 고 남는다 — 그래서 아예 막고 메일로 돌린다. */
+    if(smsBytes(text) > SMS_MAX){
+      ev.preventDefault();
+      copyNow(text);
+      showMsg('내용이 길어(약 ' + smsBytes(text).toLocaleString('ko-KR') + ' 바이트) ' +
+              '문자로 보내면 <b>중간이 잘립니다</b>. 잘리면 저희가 내용을 읽지 못합니다.' +
+              '<br><br>위의 <b>메일</b> 버튼을 눌러 붙여넣어 보내주시거나, ' +
+              '방금 복사된 내용을 카카오톡에 붙여넣어 보내주세요.', true, true);
+      markSent();
+      return;
+    }
     sms.href = 'sms:' + SMS_TO + '?&body=' + encodeURIComponent(text);
-    copyQuiet(text);          // 문자 앱이 안 열리는 PC 대비
-    showMsg('문자 앱이 <b>내용이 채워진 채로</b> 열립니다. 전송만 눌러주세요.' +
+    copyNow(text);          // 문자 앱이 안 열리는 PC 대비
+    sendMsg('문자 앱이 <b>내용이 채워진 채로</b> 열립니다. 전송만 누르시면 됩니다.' +
             '<br><br>열리지 않으면(PC 등) 아래 칸의 내용을 복사해 ' +
-            '<b>' + esc(MAIL_TO) + '</b> 로 보내주세요.', false, true);
-    showOut(text);
+            '<b>' + esc(MAIL_TO) + '</b> 로 보내주세요.');
     markSent();
   };
 }
@@ -1054,41 +1129,36 @@ if(KAKAO_CHAT){
     var d = validate();
     if(!d){ ev.preventDefault(); return; }   // 덜 채웠으면 채팅방을 열지 않는다
     var text = fullText(d);
-    copyQuiet(text);
+    copyNow(text);
     /* 채팅방이 안 열리는 환경(팝업 차단, 카카오 미설치, 1:1 채팅 꺼짐)이 있으므로
        직접 누를 수 있는 링크와 대체 수단을 함께 남긴다. */
-    showMsg(
+    sendMsg(
       '내용이 <b>복사</b>되었습니다. 카카오톡 채팅방에 <b>붙여넣고 전송</b>해 주세요. 끝의 긴 줄도 함께 보내주셔야 합니다.' +
       '<br><br>채팅방이 열리지 않았다면 &rarr; ' +
       '<a href="' + esc(KAKAO_CHAT) + '" target="_blank" rel="noopener"><b>미래전력연구소 채널 열기</b></a>' +
-      '<br>그래도 안 되면 아래 칸의 내용을 복사해 <b>' + esc(MAIL_TO) + '</b> 로 보내주세요.',
-      false, true);
-    showOut(text);
+      '<br>그래도 안 되면 아래 칸의 내용을 복사해 <b>' + esc(MAIL_TO) + '</b> 로 보내주세요.');
     markSent();
   };
 }
 
-/* 메일 — 내용을 복사한 뒤 «제목만 채운» 메일 창을 연다.
-   본문까지 mailto 에 실으면 한글이 글자당 9자로 부풀어(최소 요청도 3,100자,
-   보통 5,000자) 어떤 메일 프로그램도 열리지 않는다. 그래서 본문은 붙여넣게 한다. */
+/* 메일 — 내용을 복사해 두고 «제목만 채운» 메일 창을 연다.
+   붙여넣어야 보내진다. 그 대신 보낸편지함에 읽을 수 있는 기록이 그대로 남는다. */
 $('#bMail').onclick = function(){
   var d = validate(); if(!d) return;
-  var subj = '[견적요청] ' + d.site.name + ' 변압기 현장시험 — ' + d.co.name;
   var text = fullText(d);
-  copyQuiet(text);
-  location.href = 'mailto:' + MAIL_TO + '?subject=' + encodeURIComponent(subj);
-  showMsg('내용이 <b>복사</b>되었습니다. 열린 메일 창에 <b>붙여넣고 전송</b>해 주세요. ' +
+  copyNow(text);                                   // 동기로 먼저 끝내 둔다
+  location.href = 'mailto:' + MAIL_TO + '?subject=' + encodeURIComponent(mailSubject(d));
+  sendMsg('내용이 <b>복사</b>되었습니다. 열린 메일 창에 <b>붙여넣고 전송</b>해 주세요. ' +
           '끝의 긴 줄도 함께 보내주셔야 합니다.' +
           '<br>도면 · 명판 사진이 있으면 이때 함께 첨부해 주세요.' +
           '<br><br>메일 창이 열리지 않았다면(PC 등) 아래 칸의 내용을 복사해 ' +
-          '<b>' + esc(MAIL_TO) + '</b> 로 보내주세요.', false, true);
-  showOut(text);
+          '<b>' + esc(MAIL_TO) + '</b> 로 보내주세요.');
   markSent();
 };
 
 $('#bCopy').onclick = function(){
   var d = validate(); if(!d) return;
-  copy(fullText(d), '카카오톡이나 문자에 붙여넣어 보내주세요. 끝의 긴 줄도 함께 보내주셔야 합니다.');
+  copy(fullText(d), '이제 카카오톡이나 문자를 열고 붙여넣어 전송까지 해 주세요. 끝의 긴 줄도 함께 보내주셔야 합니다.');
   markSent();
 };
 
